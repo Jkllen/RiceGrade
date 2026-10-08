@@ -1,0 +1,1 @@
+"""RiceGrade backend package."""

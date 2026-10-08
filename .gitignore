@@ -1,0 +1,25 @@
+__pycache__/
+.pytest_cache/
+.venv/
+*.pyc
+.env
+.env.*
+!.env.example
+frontend/node_modules/
+frontend/dist/
+*.db
+*.sqlite3
+*.sqlite
+# Keep directory scaffolding, not private research data or model weights
+data/**
+!data/**/
+!data/**/.gitkeep
+artifacts/**
+!artifacts/**/
+!artifacts/**/.gitkeep
+*.pt
+*.pth
+*.onnx
+*.joblib
+*.pkl
+.DS_Store
