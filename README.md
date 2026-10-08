@@ -1,18 +1,20 @@
-# RiceGrade — project tree / empty-screen scaffold
+# RiceGrade — Authentication & dashboard scaffold
 
-A research prototype for **test-mill evaluation before full-scale milling**, with a hybrid image-quality classification pathway and physical-input milling-recovery calculations planned. This milestone is **structure only**. It contains no trained models, sample database, automated recovery computations, or actionable recommendations.
+Research prototype using **React + TypeScript + Vite + Tailwind CSS**, **FastAPI + Uvicorn**, and **SQLite**. Current workflow follows test-mill evaluation; ML modules and scientific thresholds are **not implemented**.
 
-## Start backend (repository root)
+## Start from repository root
+
+Backend (in one terminal):
 
 ```bash
 python -m venv .venv
-# Activate .venv (Windows: .venv\Scripts\activate; Linux/macOS: source .venv/bin/activate)
+# Activate .venv on your OS
 python -m pip install -r backend/requirements-dev.txt
 cd backend
-python -m uvicorn app.main:app --reload
+uvicorn app.main:app --reload
 ```
 
-## Start frontend (another terminal, repository root)
+Frontend (in a different terminal):
 
 ```bash
 cd frontend
@@ -20,6 +22,25 @@ npm install
 npm run dev
 ```
 
-Browse http://127.0.0.1:5173. The frontend proxies `/api` to port 8000. To run backend tests: `cd backend && python -m pytest -q`. To check the frontend: `cd frontend && npm run build`.
+Open http://127.0.0.1:5173/ . Sign up with an email address and a password of at least 12 characters, then you can use the protected dashboard.
 
-See `docs/architecture/project-tree.md` for every directory. All screens are placeholders, not research results.
+Run backend tests from `backend/`: `python -m pytest -q` (after installing requirements). Run frontend build from `frontend/`: `npm run build`.
+
+## Implemented
+
+- Public sign in, sign up, forgot-password and reset-password placeholder screens
+- Securely salted password hashes and revocable opaque sessions in local SQLite
+- Backend checks of sessions for `/api/auth/me` and `/api/dashboard`
+- Authenticated-user dashboard with four action cards plus log out
+- Explicit placeholders for New Rice Analysis, Screening Report, Assessment History and Profile Management
+
+## Not yet implemented
+
+- Password-reset email link delivery; its API deliberately responds `501`, without saying an email was sent
+- Email verification, rate limiting, production cookie/session hardening and deployment security review
+- Production-ready account roles, ownership permissions for future resources
+- Actual lots, physical measurements, image segmentation, models, recommendations, saved reports
+
+See `docs/architecture/auth-flow.md`, `docs/decisions.md`, and `docs/traceability.md`.
+
+Research images/data, local SQLite DBs, secrets, and ML artifacts are ignored by Git. Use synthetic deterministic test fixtures for unit tests, never fake classification outcomes in real reports.
