@@ -1,3 +1,8 @@
 name = "ricegrade-web"
 pages_build_output_dir = "./dist"
 compatibility_date = "2026-10-01"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "ricegrade_db"
+database_id = "45448a5d-1d3d-41de-9e3f-bbf005e19569"
