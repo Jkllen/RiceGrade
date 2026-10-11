@@ -31,7 +31,7 @@ type Row = Record<string, unknown>;
 type UserRow = Row & {id: number; email: string; full_name: string; role: string; password_hash: string; password_salt: string; password_iterations: number};
 type AssessmentRow = Row & { id: number; user_id: number };
 const encoder = new TextEncoder();
-const ITERATIONS = 310_000;
+const ITERATIONS = 100_000;
 const SESSION_DAYS = 7;
 const MAX_IMAGE = 5 * 1024 * 1024;
 function iso() { return new Date().toISOString(); }
