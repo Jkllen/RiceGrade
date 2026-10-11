@@ -1,0 +1,39 @@
+{
+    "train": {
+        "images": 1610,
+        "grain_objects": 15024,
+        "classes": {
+            "chalky_grain": 4261,
+            "whole_grain": 2928,
+            "broken_grain": 4013,
+            "discolored_grain": 3822
+        },
+        "skipped": {
+            "empty_or_wrong_mask": 2
+        }
+    },
+    "valid": {
+        "images": 95,
+        "grain_objects": 1266,
+        "classes": {
+            "broken_grain": 328,
+            "discolored_grain": 420,
+            "whole_grain": 337,
+            "chalky_grain": 181
+        },
+        "skipped": {
+            "empty_or_wrong_mask": 1
+        }
+    },
+    "test": {
+        "images": 95,
+        "grain_objects": 1211,
+        "classes": {
+            "discolored_grain": 383,
+            "chalky_grain": 186,
+            "broken_grain": 284,
+            "whole_grain": 358
+        },
+        "skipped": {}
+    }
+}
