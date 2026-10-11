@@ -1,29 +1,25 @@
-# Methodology traceability (provisional)
+# RiceGrade implementation traceability
 
-Source: revised RiceGrade Chapter 3 supplied by the team. No scientific thresholds or dataset facts are assumed.
+This milestone is UI/account/recovery first. Completed software features are distinguished from unconnected ML research components.
 
-| Requirement | Planned component | Verification | Status |
+| Requirement | Code location | Verification | Current status |
 |---|---|---|---|
-| React + TypeScript / Vite / Tailwind | frontend/ | Type check + build | Scaffolded |
-| FastAPI / Uvicorn | backend/app/main.py | GET /api/health test | Implemented |
-| SQLite accounts, lots, samples, measurements, reports | backend/app/persistence/ (future) | DB round-trip and access tests | Pending |
-| Instance segmentation | backend/app/vision/ (future) | IoU/mAP evaluation, degraded capture tests | Pending model choice |
-| OpenCV descriptors | backend/app/vision/ (future) | Deterministic synthetic-image tests | Pending |
-| EfficientNet-B0 + XGBoost quality classifier | backend/app/ml/ (future) | adapter contract + lot-held-out metrics | Pending artifacts |
-| Physical weights → calculated recovery | backend/app/domain/recovery.py (future) | known-value, zero/negative and unit tests | Pending measurement contract |
-| DSS rules with traceable evidence | backend/app/domain/rules.py (future) | threshold boundary + uncertainty cases | Pending validated thresholds |
-| Saved reports and history | backend/app/repositories/ (future) | retrieval and permissions tests | Pending |
-| 50-person ISO/IEC 25010 evaluation | docs/evaluation/ (future) | questionnaire/scoring evidence | Pending |
+| Responsive React + TypeScript UI | `frontend/src/` | TypeScript source check; production npm build to verify in networked environment | Built source; runtime build not verified here |
+| Sign up / sign in / sign out | `backend/app/api/routes/auth.py` | `test_auth.py` | Backend complete for prototype |
+| Authenticated profile, role label and password change | `backend/app/api/routes/auth.py` | `test_auth.py` | Backend and UI complete |
+| Forgot/reset password | `backend/app/api/routes/auth.py` | Token, one-use, expiry patterns and mocked SMTP tests | Works once SMTP is configured |
+| SQLite persistence and assessment ownership | `backend/app/core/auth.py`; `backend/app/api/routes/evaluations.py` | `test_evaluations.py` | Backend complete for prototype |
+| Original paddy and milled-rice weights | `frontend/src/features/analysis/`; evaluations API | Invalid mass and missing optional field tests | Implemented |
+| Calculated total / optional brown / head recovery | evaluations API | Known-value tests | Implemented |
+| Sample image upload / private retrieval | evaluations API, history UI | Image format, size and ownership tests | Implemented |
+| Evaluation history and details | history UI, evaluations API | Backend retrieval/ownership tests | Implemented |
+| Report queue/preview | reports UI | Source type-check; manual responsive review pending | UI ready, final ML report unavailable |
+| Cloudflare Pages same-origin API proxy | `frontend/functions/api/[[path]].ts`, `frontend/wrangler.toml` | Requires actual deployment with configured backend origin | Prepared, not deployed |
+| Grain isolation (OpenCV) | `backend/app/vision/` (future) | Local annotated data, per-instance metrics | Not implemented |
+| EfficientNet-B0 feature extraction | `backend/app/ml/` (future) | Verify final training checkpoint/config | Pending model integration |
+| Feature fusion / XGBoost final classification | `backend/app/ml/` (future) | Independent held-out comparisons and macro-F1 | Pending |
+| Visual counts and proportions | assessment inference service (future) | Ground-truth sample comparisons | Pending |
+| DSS reference rules and recommendations | `backend/app/domain/` (future) | Validated boundary tests and expert review | Pending |
+| Final evaluation report with DSS | report service (future) | Data and threshold traceability tests | Pending |
 
-**Scientific gates:** confirm unit and numerator/denominator measurement definitions; classification labels and dataset rights; segmentation model; image acquisition/quality checks; source-backed thresholds and operator validation; confidence policy. A non-ML fallback must never be labeled a predicted result.
-
-## Approved authentication/navigation flow (October scaffold revision)
-
-| Requirement | Component | Verification |
-|---|---|---|
-| Sign in / sign up | `frontend/src/features/auth/pages/AuthPage.tsx`; `backend/app/api/routes/auth.py` | `backend/tests/test_auth.py` |
-| Verify session before dashboard | `frontend/src/App.tsx`; `/api/auth/me` | `test_dashboard_requires_authentication`, `test_signup_login_logout` |
-| Reject unauthorized protected API requests | `backend/app/core/auth.py` dependency; `/api/dashboard` | `test_dashboard_requires_authentication` |
-| Dashboard links: analysis, reports, history, profile | `frontend/src/components/layout/AppShell.tsx`, DashboardPage | Frontend navigation manual review; automated UI test pending |
-| Log out revokes session | `/api/auth/logout` and `App.tsx` | `test_signup_login_logout` |
-| Forgot password email validation and reset flow | UI scaffold, API deliberately unavailable | `test_password_reset_not_implemented`; full email/reset tests pending |
+**Scientific boundary:** never equate image-derived grain-count percentages with PNS/BAFS mass-based quality thresholds; never derive actual recovery from those image counts.

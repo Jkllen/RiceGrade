@@ -1,49 +1,49 @@
 import { useState, type FormEvent } from 'react';
 import { apiRequest, type AuthReply } from '../../../lib/authApi';
+import { Icon, Notice } from '../../../components/ui/Elements';
 export type AuthMode = 'sign-in' | 'sign-up' | 'forgot-password' | 'reset-password';
-
-type Props = { mode: AuthMode; onMode: (mode: AuthMode) => void; onSuccess: (reply: AuthReply) => void };
-export function AuthPage({ mode, onMode, onSuccess }: Props) {
+type Props = { mode: AuthMode; onMode: (mode: AuthMode) => void; onSuccess: (reply: AuthReply) => void; resetToken?: string | null; clearReset: () => void };
+export function AuthPage({ mode, onMode, onSuccess, resetToken, clearReset }: Props) {
+  const [fullName, setFullName] = useState('');
+  const [role, setRole] = useState<'operator' | 'qa'>('operator');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
+  const [message, setMessage] = useState('');
   const [busy, setBusy] = useState(false);
-  const title = { 'sign-in': 'Sign In', 'sign-up': 'Sign Up', 'forgot-password': 'Forgot Password', 'reset-password': 'Reset Password' }[mode];
+  const title = { 'sign-in': 'Welcome back', 'sign-up': 'Create your account', 'forgot-password': 'Reset your password', 'reset-password': 'Choose a new password' }[mode];
+  function change(next: AuthMode) { setError(''); setMessage(''); setPassword(''); setConfirmPassword(''); onMode(next); if (mode === 'reset-password') clearReset(); }
   async function submit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault(); setError('');
-    if (mode === 'forgot-password' || mode === 'reset-password') {
-      setError('Password reset is awaiting an approved email-delivery mechanism. No reset email was sent.');
-      return;
-    }
+    event.preventDefault(); setError(''); setMessage('');
+    if ((mode === 'sign-up' || mode === 'reset-password') && password !== confirmPassword) { setError('Passwords do not match'); return; }
     setBusy(true);
     try {
-      const reply = await apiRequest<AuthReply>(`/auth/${mode}`, { method: 'POST', body: JSON.stringify({ email, password }) }, null);
-      onSuccess(reply);
-    } catch (err) { setError(err instanceof Error ? err.message : 'Authentication failed'); }
+      if (mode === 'forgot-password') {
+        const reply = await apiRequest<{message:string}>('/auth/forgot-password', { method:'POST', body:JSON.stringify({ email }) }, null);
+        setMessage(reply.message);
+      } else if (mode === 'reset-password') {
+        const reply = await apiRequest<{message:string}>('/auth/reset-password', { method:'POST', body:JSON.stringify({ token:resetToken, new_password:password }) }, null);
+        clearReset(); onMode('sign-in'); setMessage(reply.message); setPassword(''); setConfirmPassword('');
+      } else {
+        const body = mode === 'sign-up' ? { full_name: fullName, role, email, password } : { email, password };
+        const reply = await apiRequest<AuthReply>(`/auth/${mode}`, { method:'POST', body:JSON.stringify(body) }, null);
+        onSuccess(reply);
+      }
+    } catch (err) { setError(err instanceof Error ? err.message : 'Account request failed'); }
     finally { setBusy(false); }
   }
-  return <main className="flex min-h-screen items-center justify-center bg-stone-100 px-4 py-8">
-    <section className="w-full max-w-md rounded-2xl border border-stone-200 bg-white p-8 shadow-sm">
-      <h1 className="text-3xl font-bold text-emerald-900">RiceGrade</h1>
-      <p className="mt-1 text-sm text-stone-500">Test-mill evaluation research prototype</p>
-      <h2 className="mt-8 text-xl font-semibold">{title}</h2>
-      <form onSubmit={submit} className="mt-5 space-y-4">
-        {mode !== 'reset-password' && <label className="block text-sm font-medium">Email address
-          <input type="email" autoComplete="email" required value={email} onChange={e => setEmail(e.target.value)} className="mt-1 w-full rounded-lg border border-stone-300 p-3" />
-        </label>}
-        {(mode === 'sign-in' || mode === 'sign-up') && <label className="block text-sm font-medium">Password
-          <input type="password" autoComplete={mode === 'sign-up' ? 'new-password' : 'current-password'} minLength={12} required value={password} onChange={e => setPassword(e.target.value)} className="mt-1 w-full rounded-lg border border-stone-300 p-3" />
-          {mode === 'sign-up' && <span className="block mt-1 text-xs text-stone-500">At least 12 characters.</span>}
-        </label>}
-        {error && <p role="alert" className="rounded-lg bg-amber-50 p-3 text-sm text-amber-900">{error}</p>}
-        <button disabled={busy} type="submit" className="w-full rounded-lg bg-emerald-800 px-4 py-3 font-semibold text-white disabled:opacity-60">{busy ? 'Please wait…' : title}</button>
+  return <main className="auth-layout"><section className="auth-intro"><div className="auth-brand"><span className="brand-mark"/><strong>RiceGrade</strong></div><div className="auth-intro-copy"><span className="intro-tag">MILLED RICE QUALITY ASSESSMENT</span><h1>Better decisions begin with a better test.</h1><p>One secure workspace for test-mill measurements, visual quality screening, and evidence-based milling decisions.</p><div className="auth-facts"><span><Icon name="shield" size={18}/>Research-oriented</span><span><Icon name="chart" size={18}/>Measurement-first</span></div></div><p className="auth-footnote">RiceGrade · Test-mill screening research prototype</p></section>
+    <section className="auth-form-panel"><div className="auth-card"><div className="auth-mobile-brand"><span className="brand-mark"/><strong>RiceGrade</strong></div><p className="eyebrow">ACCOUNT ACCESS</p><h2>{title}</h2><p className="auth-description">{mode === 'sign-in' ? 'Sign in to continue to your RiceGrade workspace.' : mode === 'sign-up' ? 'Create an account to organize your test-mill assessments.' : mode === 'forgot-password' ? 'Enter your registered email to receive a reset link.' : 'Enter a new password to regain access to your account.'}</p>
+      <form onSubmit={submit} className="form-stack">
+        {mode === 'sign-up' && <><label className="field">Full name<input autoComplete="name" required minLength={2} maxLength={120} value={fullName} onChange={e => setFullName(e.target.value)} placeholder="Full name"/></label><label className="field">Account type<select value={role} onChange={e => setRole(e.target.value as 'operator' | 'qa')}><option value="operator">Milling Operator</option><option value="qa">QA/QC Personnel</option></select></label></>}
+        {mode !== 'reset-password' && <label className="field">Email address<input type="email" autoComplete="email" required value={email} onChange={e => setEmail(e.target.value)} placeholder="you@example.com"/></label>}
+        {mode !== 'forgot-password' && <label className="field">{mode === 'reset-password' ? 'New password' : 'Password'}<input type="password" minLength={mode === 'sign-in' ? undefined : 12} required autoComplete={mode === 'sign-in' ? 'current-password' : 'new-password'} value={password} onChange={e => setPassword(e.target.value)} placeholder="Enter your password"/>{mode !== 'sign-in' && <small>At least 12 characters.</small>}</label>}
+        {(mode === 'sign-up' || mode === 'reset-password') && <label className="field">Confirm password<input type="password" minLength={12} required autoComplete="new-password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} placeholder="Confirm your password"/></label>}
+        {error && <Notice tone="warning">{error}</Notice>}{message && <Notice tone="success">{message}</Notice>}
+        <button className="button button-primary wide" disabled={busy} type="submit">{busy ? 'Please wait…' : mode === 'sign-in' ? 'Sign in' : mode === 'sign-up' ? 'Create account' : mode === 'forgot-password' ? 'Send reset link' : 'Reset password'}<Icon name="arrow" size={18}/></button>
       </form>
-      <nav aria-label="Authentication actions" className="mt-6 flex flex-wrap gap-3 text-sm">
-        {mode !== 'sign-in' && <button className="text-emerald-800 underline" onClick={() => { setError(''); onMode('sign-in'); }}>Sign In</button>}
-        {mode !== 'sign-up' && <button className="text-emerald-800 underline" onClick={() => { setError(''); onMode('sign-up'); }}>Sign Up</button>}
-        {mode !== 'forgot-password' && <button className="text-emerald-800 underline" onClick={() => { setError(''); onMode('forgot-password'); }}>Forgot Password?</button>}
-      </nav>
-      {(mode === 'forgot-password' || mode === 'reset-password') && <p className="mt-4 text-sm text-stone-600">This screen is scaffolded, but reset links cannot be issued until email delivery and token policies are approved.</p>}
-    </section>
+      <div className="auth-actions">{mode !== 'sign-in' && <button type="button" onClick={() => change('sign-in')}>Back to sign in</button>}{mode === 'sign-in' && <><button onClick={() => change('forgot-password')}>Forgot password?</button><span>New here? <button onClick={() => change('sign-up')}>Create an account</button></span></>}{mode === 'sign-up' && <span>Already have an account? <button onClick={() => change('sign-in')}>Sign in</button></span>}</div>
+    </div></section>
   </main>;
 }

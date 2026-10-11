@@ -1,46 +1,53 @@
-# RiceGrade — Authentication & dashboard scaffold
+# RiceGrade — UI-first implementation
 
-Research prototype using **React + TypeScript + Vite + Tailwind CSS**, **FastAPI + Uvicorn**, and **SQLite**. Current workflow follows test-mill evaluation; ML modules and scientific thresholds are **not implemented**.
+A **responsive React + TypeScript** research web app with a **FastAPI + SQLite** backend. This milestone implements the account experience and saves actual test-mill measurements while the EfficientNet-B0 training and hybrid model integration are pending.
 
-## Start from repository root
+## What works
 
-Backend (in one terminal):
+- Email/password sign-up and sign-in, session validation, sign out, dashboard guards and protected API endpoints
+- Operator/QA role labels, profile editor, current-password verification, password changes and revocation of other sessions
+- Password-reset tokens and SMTP email sending **when SMTP environment variables are configured** (otherwise a truthful configuration error)
+- Mobile-friendly dashboard, navigation, assessment form, assessment history/details, report queue, profile and all account screens
+- Authenticated, ownership-protected sample records and original JPEG/PNG/WebP images (max 5 MB) stored in SQLite
+- Required paddy input / total milled rice weight, optional brown rice / head rice weight and physically measured moisture
+- Server-verified total, brown-rice and head-rice milling-recovery calculations (grams; percentages) and input consistency checks
+- Cloudflare Pages build files and a `/api` Pages Function reverse proxy to a separately hosted Python backend
+
+## Not implemented — no placeholder results are fabricated
+
+- Fully integrated OpenCV grain segmentation, trained EfficientNet-B0 + engineered feature fusion, XGBoost four-class inference
+- Confidence calibration and quality count percentages, validated DSS thresholds, finished quality-screening reports
+- Live Cloudflare deployment, persistent hosting and email credentials (require the owners' infrastructure access)
+
+## Local setup
+
+From the repo root, start the backend in terminal 1:
 
 ```bash
 python -m venv .venv
-# Activate .venv on your OS
+# Activate the environment for your OS
 python -m pip install -r backend/requirements-dev.txt
 cd backend
 uvicorn app.main:app --reload
 ```
 
-Frontend (in a different terminal):
+The default local SQLite file remains `ricegrade.sqlite3` **at the repository root**, matching the original scaffold so existing local accounts are not lost. To point to another location, set `RICEGRADE_DB_PATH` to an absolute path. No tables need to be created manually: SQLite initialization and additive migration happen automatically. Data survives application restarts.
+
+From terminal 2:
 
 ```bash
 cd frontend
-npm install
+npm ci
 npm run dev
 ```
 
-Open http://127.0.0.1:5173/ . Sign up with an email address and a password of at least 12 characters, then you can use the protected dashboard.
+Open `http://127.0.0.1:5173`. The Vite development server proxies `/api` to `http://127.0.0.1:8000`.
 
-Run backend tests from `backend/`: `python -m pytest -q` (after installing requirements). Run frontend build from `frontend/`: `npm run build`.
+## Verification
 
-## Implemented
+```bash
+cd backend && python -m pytest -q
+cd frontend && npm run build
+```
 
-- Public sign in, sign up, forgot-password and reset-password placeholder screens
-- Securely salted password hashes and revocable opaque sessions in local SQLite
-- Backend checks of sessions for `/api/auth/me` and `/api/dashboard`
-- Authenticated-user dashboard with four action cards plus log out
-- Explicit placeholders for New Rice Analysis, Screening Report, Assessment History and Profile Management
-
-## Not yet implemented
-
-- Password-reset email link delivery; its API deliberately responds `501`, without saying an email was sent
-- Email verification, rate limiting, production cookie/session hardening and deployment security review
-- Production-ready account roles, ownership permissions for future resources
-- Actual lots, physical measurements, image segmentation, models, recommendations, saved reports
-
-See `docs/architecture/auth-flow.md`, `docs/decisions.md`, and `docs/traceability.md`.
-
-Research images/data, local SQLite DBs, secrets, and ML artifacts are ignored by Git. Use synthetic deterministic test fixtures for unit tests, never fake classification outcomes in real reports.
+See [Cloudflare deployment instructions](docs/deployment/cloudflare.md), [authentication design](docs/architecture/auth-flow.md) and [flowchart traceability](docs/traceability.md). All ML implementations must be audited independently before enabling screening. The uploaded training ZIP is kept as a separate research artifact, rather than silently merged into production inference.
