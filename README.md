@@ -1,53 +1,40 @@
-# RiceGrade — UI-first implementation
+# RiceGrade — Cloudflare-native application milestone
 
-A **responsive React + TypeScript** research web app with a **FastAPI + SQLite** backend. This milestone implements the account experience and saves actual test-mill measurements while the EfficientNet-B0 training and hybrid model integration are pending.
+A **responsive React + TypeScript** research web app with **Cloudflare Pages Functions + D1** for deployed authentication and persistent test-mill assessments. The independent Python FastAPI/SQLite prototype is kept in `backend/` for local/reference use and potential Python ML inference development; **the Cloudflare site no longer proxies its API to FastAPI**.
 
-## What works
+## Features ready in code
 
-- Email/password sign-up and sign-in, session validation, sign out, dashboard guards and protected API endpoints
-- Operator/QA role labels, profile editor, current-password verification, password changes and revocation of other sessions
-- Password-reset tokens and SMTP email sending **when SMTP environment variables are configured** (otherwise a truthful configuration error)
-- Mobile-friendly dashboard, navigation, assessment form, assessment history/details, report queue, profile and all account screens
-- Authenticated, ownership-protected sample records and original JPEG/PNG/WebP images (max 5 MB) stored in SQLite
-- Required paddy input / total milled rice weight, optional brown rice / head rice weight and physically measured moisture
-- Server-verified total, brown-rice and head-rice milling-recovery calculations (grams; percentages) and input consistency checks
-- Cloudflare Pages build files and a `/api` Pages Function reverse proxy to a separately hosted Python backend
+- Real registration, sign-in, session revocation, sign-out, profile edit and password change using D1.
+- Password-reset token flow; real email delivery needs provider secrets (see deployment guide).
+- Responsive dashboard, navigation, history, test-mill evaluation, report queue and account screens.
+- Protected records: lot ID, test-run ID, measurements, recovery calculations, dates and optional notes.
+- Recovery: `100 × total_milled_rice_weight / paddy_input_weight`; optional brown/head recovery when weights exist.
+- Private sample images supported through **optional R2 binding** after bucket creation.
+- Explicit `awaiting_model` status: no fictional model predictions, DSS results or official rice grades.
 
-## Not implemented — no placeholder results are fabricated
+## Deploy to Cloudflare
 
-- Fully integrated OpenCV grain segmentation, trained EfficientNet-B0 + engineered feature fusion, XGBoost four-class inference
-- Confidence calibration and quality count percentages, validated DSS thresholds, finished quality-screening reports
-- Live Cloudflare deployment, persistent hosting and email credentials (require the owners' infrastructure access)
+Read [docs/deployment/cloudflare.md](docs/deployment/cloudflare.md). **Important:** apply `frontend/migrations/0001_initial.sql` using Wrangler's D1 migration command `--remote` before trying to sign up. The D1 binding `DB` is already configured for `ricegrade_db` in `frontend/wrangler.toml`. The Pages project remains `ricegrade` at https://ricegrade.pages.dev .
 
-## Local setup
-
-From the repo root, start the backend in terminal 1:
+From `frontend/`:
 
 ```bash
-python -m venv .venv
-# Activate the environment for your OS
-python -m pip install -r backend/requirements-dev.txt
-cd backend
-uvicorn app.main:app --reload
-```
-
-The default local SQLite file remains `ricegrade.sqlite3` **at the repository root**, matching the original scaffold so existing local accounts are not lost. To point to another location, set `RICEGRADE_DB_PATH` to an absolute path. No tables need to be created manually: SQLite initialization and additive migration happen automatically. Data survives application restarts.
-
-From terminal 2:
-
-```bash
-cd frontend
 npm ci
-npm run dev
+npx wrangler login
+npx wrangler d1 migrations apply ricegrade_db --remote
+npm run build
+npm run cf:test-api
 ```
 
-Open `http://127.0.0.1:5173`. The Vite development server proxies `/api` to `http://127.0.0.1:8000`.
+Then commit/push the updated source to `main` to trigger the Pages build. The Cloudflare app becomes functional **after migration and successful deployment**, not by downloading this ZIP alone.
 
-## Verification
+## Project notes
 
-```bash
-cd backend && python -m pytest -q
-cd frontend && npm run build
-```
+- `frontend/functions/api/[[path]].ts` — Cloudflare API handlers (Web Crypto password hashing, D1-backed sessions and records, optional private R2 image API).
+- `frontend/migrations/0001_initial.sql` — persistent database schema.
+- `frontend/cloudflare-tests/api-smoke.mjs` — local API integration smoke test with Node 22 built-in SQLite.
+- `frontend/wrangler.toml` — Cloudflare Pages/D1 bindings. Uncomment optional R2 binding after creating the bucket.
+- `backend/` — prior Python development implementation; not production Cloudflare API.
+- `docs/model-integration.md` — ML handoff and unvalidated items.
 
-See [Cloudflare deployment instructions](docs/deployment/cloudflare.md), [authentication design](docs/architecture/auth-flow.md) and [flowchart traceability](docs/traceability.md). All ML implementations must be audited independently before enabling screening. The uploaded training ZIP is kept as a separate research artifact, rather than silently merged into production inference.
+Never commit `.env`, keys, tokens, user data, or research images to GitHub. Existing local SQLite accounts are **not automatically migrated** into Cloudflare D1; production D1 begins with no users unless separately imported via an approved migration.
