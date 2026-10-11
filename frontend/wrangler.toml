@@ -10,5 +10,5 @@ database_id = "45448a5d-1d3d-41de-9e3f-bbf005e19569"
 # After creating a PRIVATE R2 bucket named ricegrade-images, uncomment:
 # [[r2_buckets]]
 # binding = "IMAGES"
-# bucket_name = "ricegrade-images"
+# bucket_name = "ricegrade_images"
 # Never commit API keys or account secrets. Store them in Pages project secrets.
