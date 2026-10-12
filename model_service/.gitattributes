@@ -1,0 +1,2 @@
+models/final_ricegrade/*.json -text
+models/final_ricegrade/*.pth binary

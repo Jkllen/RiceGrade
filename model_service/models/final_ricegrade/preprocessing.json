@@ -1,0 +1,38 @@
+{
+  "input_color": "RGB",
+  "input_dtype": "uint8",
+  "input_size": [
+    224,
+    224
+  ],
+  "mask_background": [
+    0,
+    0,
+    0
+  ],
+  "resize": "PIL.ImageOps.pad",
+  "interpolation": "BICUBIC",
+  "centering": [
+    0.5,
+    0.5
+  ],
+  "mean": [
+    0.485,
+    0.456,
+    0.406
+  ],
+  "std": [
+    0.229,
+    0.224,
+    0.225
+  ],
+  "augmentation": false,
+  "opencv_feature_version": 3,
+  "geometry": "original image pixels, all components and hole boundaries",
+  "cnn_feature_count": 1280,
+  "opencv_feature_count": 16,
+  "cnn_amp": true,
+  "cuda_autocast_dtype": "float16",
+  "cpu_precision": "float32; may differ slightly from training CUDA AMP features",
+  "combined_order": "cnn_0000..cnn_1279, then the 16 opencv_feature_names"
+}
