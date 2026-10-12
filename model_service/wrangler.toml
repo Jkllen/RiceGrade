@@ -15,3 +15,8 @@ class_name = "RiceGradeModelContainer"
 [[migrations]]
 tag = "v1"
 new_sqlite_classes = ["RiceGradeModelContainer"]
+
+[vars]
+RICEGRADE_ML_ORIGIN = "https://nice-arguments-countries-forth.trycloudflare.com"
+
+

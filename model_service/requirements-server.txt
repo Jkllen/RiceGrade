@@ -5,3 +5,4 @@ numpy>=2,<3
 pandas>=2,<4
 opencv-python-headless>=4.9,<5
 xgboost>=3,<4
+scikit-learn==1.9.1
