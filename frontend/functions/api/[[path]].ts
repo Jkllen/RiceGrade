@@ -219,7 +219,26 @@ async function serviceInference(env:Env, image:R2Object, contentType:string):Pro
     res=await fetch(new URL('/predict/image',url).toString(), {method:'POST',
       headers:{'Content-Type':contentType,'X-RiceGrade-Service-Key':secret},body:bytes,
       redirect:'error',signal:AbortSignal.timeout(120000)});
-  } catch { fail(502,'Model service is unavailable or timed out. Please retry later.'); }
+  } catch (error: unknown) {
+  const err = error instanceof Error
+    ? error
+    : new Error(String(error));
+
+  const cause = err.cause;
+
+  console.error("[RiceGrade ML] Outbound fetch failed", {
+    host: url.hostname,
+    errorName: err.name,
+    errorMessage: err.message,
+    causeName: cause instanceof Error ? cause.name : undefined,
+    causeMessage: cause instanceof Error ? cause.message : undefined,
+  });
+
+  fail(
+    502,
+    "Model service is unavailable or timed out. Please retry later."
+    );
+  }
   const raw=await res.text();
   if(raw.length>1_000_000)fail(502,'Model result exceeded size limit');
   let value:Row={};try{value=JSON.parse(raw) as Row;}catch{/* invalid upstream JSON */}
