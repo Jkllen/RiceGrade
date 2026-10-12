@@ -1,0 +1,31 @@
+{
+  "new_files_sha256": {
+    "ricegrade\\features.py": "c69696e697df33aa4e3c4b6f0d99a1a309a2ca4eb1f09f6e4ba2cb84a801b622",
+    "ricegrade\\inference.py": "e15577ed8ef609df72b8c1f60cb023e589dce2a2679ab6c00cbe636828d14d89",
+    "ricegrade\\__init__.py": "959100297ca85f01fdf90667167fded696dbf99c1d55ceb533d614861f42fc88",
+    "examples\\predict_with_masks.py": "8631685c4b23d0305561e489b34d974802c71b4c1d8899f2bf79c13b46befdc6",
+    "models\\final_ricegrade\\class_labels.json": "dc169dc07073375405668ec95d8211b99fd1c3c6f95166548f060c6b0ab84939",
+    "models\\final_ricegrade\\efficientnet_b0.pth": "1f15bc4a573c9ff822df8c491490bd592e1a628ad05253951f024f9a873c989f",
+    "models\\final_ricegrade\\feature_schema.json": "bfe45d3d00f67f5b1fae4516ac5a7b54b3db263c3febbe958401cad11f00ae60",
+    "models\\final_ricegrade\\manifest.json": "438169dab11d3bdb44d9637b380c0086b4ac667af87ea7932cd405478a0ffc25",
+    "models\\final_ricegrade\\model_selection.json": "d51f94af3939f0ba6b5a053c927fa0f0406510f3ab5c9fc31a52910b2d730c53",
+    "models\\final_ricegrade\\preprocessing.json": "63b81faba985e8cae223e4dc86c13c4a96a1b33f35c15223197b7539c6608fa7",
+    "models\\final_ricegrade\\xgboost.json": "059866a41ce1957d61dea5cfe4141c8cc4b45a5c541d9d2779b02f6236b290eb",
+    "results\\final_ricegrade_test\\classification_report.csv": "2ba614842cd14895d40ce29e633ee97771eb44da073f6767abaa36dd5e181ac4",
+    "results\\final_ricegrade_test\\classification_report.txt": "545f6d4621fc78fd587142fd8c47a504d02fe11a615327665033b7501ab7f813",
+    "results\\final_ricegrade_test\\confusion_matrix.csv": "d5fd9c8a42992d21d20998747e3ae72afa85d54ae5fecde72939c7995693cccd",
+    "results\\final_ricegrade_test\\confusion_matrix.png": "876757e57bf44fd55621dbee45896074d6e1eb048fb747052994c4fc50ff1a88",
+    "results\\final_ricegrade_test\\metrics.json": "bd119a9552e07a3bfe0e5c3f0b0f379382c00879beee0a75a27204b05a6f14d9",
+    "results\\final_ricegrade_test\\predictions.csv": "a3d40be2559de0048a31e7f5664ba8ee813c83e9aa0d758a245719e4ddffc58a",
+    "results\\final_ricegrade_test\\test_features.npz": "ef1da2203f2cf4129ebd3814cfc95f1acec3540b4dba8d8ebaff10426218d845",
+    "results\\final_ricegrade_test\\test_metadata.csv": "593b4286c6806b0487452caebd68d0ea287df5989ce4dcb1dba376ca86756a10",
+    "results\\final_ricegrade_checks\\smoke_test_results.json": "55cc1b4dab0b09ea042e6d0667b7f5cffc0dbe300a7ef994d26d012b8d059cb8",
+    "results\\final_ricegrade_checks\\source_integrity.json": "d3666ac8dee8503d8da21efc8f82c209a245aa2ae51ea1d9d8178ed63e6c6c9f",
+    "finalize_ricegrade.py": "0a56d144fdc396276f3479e4568791d275d5c005a01e3cd2e0b794297cb31d45",
+    "evaluate_ricegrade.py": "b654e215df5ad7392cbc0be8d52176d49313bff4c5766c87b6a7a2cdcc7e90ca",
+    "smoke_test_ricegrade.py": "fda8d940543a90decc4686317c5e445c946617d864580d0023d914480e3ab7d3",
+    "requirements-inference.txt": "ed33d76dcda98f2f5e7709f871262d5a36e29a29bda0f57348b09f980b94ccb0",
+    "requirements-evaluation.txt": "7b4abd869be1c2735f0d52e23d5568fc81a18e3b9a857fe389c1296f6641c50a",
+    "RICEGRADE_INTEGRATION.md": "c962f444efa055604ddc3fbdff29a588caaab1ea8f837cff3d2eb80b606f7f4e"
+  }
+}

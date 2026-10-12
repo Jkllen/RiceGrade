@@ -8,8 +8,7 @@ from pathlib import Path
 import numpy as np
 import torch
 import torch.nn as nn
-from sklearn.metrics import accuracy_score, f1_score
-from torch.utils.data import DataLoader
+from torch.utils.data import ConcatDataset, DataLoader, Sampler
 from torchvision import models
 from tqdm import tqdm
 
@@ -30,8 +29,8 @@ LEARNING_RATE = 0.0001
 WEIGHT_DECAY = 0.0001
 SEED = 42
 NUM_CLASSES = 4
-# Prepare training images with up to four parallel workers.
-NUM_WORKERS = min(4, os.cpu_count() or 1)
+# Prepare training images with up to eight parallel workers.
+NUM_WORKERS = min(8, os.cpu_count() or 1)
 USE_AMP = True
 CLASSES = ["broken_grain", "chalky_grain", "discolored_grain", "whole_grain"]
 
@@ -43,13 +42,40 @@ def seed_worker(worker_id):
     random.seed(worker_seed)
 
 
+class PhaseSampler(Sampler):
+    """Switch between shuffled training and ordered validation samples."""
+
+    def __init__(self, train_size, valid_size, seed=SEED):
+        self.train_size = train_size
+        self.valid_size = valid_size
+        self.generator = torch.Generator().manual_seed(seed)
+        self.phase = "train"
+
+    def set_phase(self, phase):
+        if phase not in ("train", "valid"):
+            raise ValueError("phase must be 'train' or 'valid'.")
+        self.phase = phase
+
+    def __iter__(self):
+        if self.phase == "train":
+            return iter(torch.randperm(self.train_size,
+                                       generator=self.generator).tolist())
+        return iter(range(self.train_size, self.train_size + self.valid_size))
+
+    def __len__(self):
+        return self.train_size if self.phase == "train" else self.valid_size
+
+
 def create_data_loader(dataset, *, shuffle, num_workers=NUM_WORKERS,
-                       batch_size=BATCH_SIZE, seed=SEED):
+                       batch_size=BATCH_SIZE, seed=SEED, sampler=None):
     if num_workers < 0:
         raise ValueError("num_workers must be zero or greater.")
+    if sampler is not None and shuffle:
+        raise ValueError("Use either shuffle or a sampler, not both.")
     options = {
         "batch_size": batch_size,
         "shuffle": shuffle,
+        "sampler": sampler,
         "num_workers": num_workers,
         "pin_memory": True,
         "worker_init_fn": seed_worker,
@@ -96,6 +122,9 @@ def train_one_epoch(model, loader, criterion, optimizer, scaler, device):
 
 @torch.inference_mode()
 def validate(model, loader, criterion, device):
+    # Windows workers import this module; only the main process needs metrics.
+    from sklearn.metrics import accuracy_score, f1_score
+
     model.eval()
     running_loss = torch.zeros((), device=device)
     correct = torch.zeros((), dtype=torch.int64, device=device)
@@ -163,17 +192,19 @@ def main():
     print("Device:", device)
     print("GPU:", torch.cuda.get_device_name(0))
     print("PyTorch:", torch.__version__)
-    print("Training DataLoader workers:", args.num_workers)
+    print("Shared training/validation DataLoader workers:", args.num_workers)
 
     train_dataset = RiceGrainDataset(TRAIN_CSV, train=True)
     valid_dataset = RiceGrainDataset(VALID_CSV, train=False)
     if not len(train_dataset) or not len(valid_dataset):
         raise ValueError("Training and validation manifests must both contain samples.")
-    train_loader = create_data_loader(train_dataset, shuffle=True,
-                                      num_workers=args.num_workers)
-    # Avoid a second persistent worker pool competing with training for RAM.
-    valid_loader = create_data_loader(valid_dataset, shuffle=False,
-                                      num_workers=0, seed=SEED + 1)
+    # Both phases use one persistent pool, so validation can load in
+    # parallel without keeping a second set of workers in memory.
+    combined_dataset = ConcatDataset([train_dataset, valid_dataset])
+    phase_sampler = PhaseSampler(len(train_dataset), len(valid_dataset))
+    loader = create_data_loader(combined_dataset, shuffle=False,
+                                num_workers=args.num_workers,
+                                sampler=phase_sampler)
 
     print("\nDATASET")
     print("Training grains:", len(train_dataset))
@@ -206,10 +237,12 @@ def main():
 
     for epoch in range(1, EPOCHS + 1):
         print(f"\n{'=' * 50}\nEPOCH {epoch}/{EPOCHS}\n{'=' * 50}")
+        phase_sampler.set_phase("train")
         train_loss, train_accuracy = train_one_epoch(
-            model, train_loader, criterion, optimizer, scaler, device)
+            model, loader, criterion, optimizer, scaler, device)
+        phase_sampler.set_phase("valid")
         valid_loss, valid_accuracy, valid_f1 = validate(
-            model, valid_loader, criterion, device)
+            model, loader, criterion, device)
         scheduler.step(valid_f1)
         current_lr = optimizer.param_groups[0]["lr"]
 

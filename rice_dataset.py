@@ -14,19 +14,16 @@ from pycocotools import mask as mask_utils
 
 class RiceGrainDataset(Dataset):
 
-    def __init__(self, manifest_path, train=False):
+    def __init__(self, manifest_path, train=False, *, records=None):
 
         self.train = train
 
-        with open(
-            manifest_path,
-            newline="",
-            encoding="utf-8"
-        ) as file:
-
-            self.records = list(
-                csv.DictReader(file)
-            )
+        if records is None:
+            with open(manifest_path, newline="", encoding="utf-8") as file:
+                self.records = list(csv.DictReader(file))
+        else:
+            # Callers can supply normalized paths while reusing exact crop transforms.
+            self.records = [dict(record) for record in records]
 
         # Cache COCO metadata, not cropped images.
         annotation_paths = {

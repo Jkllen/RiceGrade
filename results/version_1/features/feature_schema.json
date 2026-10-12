@@ -1,0 +1,44 @@
+{
+  "checkpoint_path": "C:\\Users\\lawrence\\VSCode\\RiceGrade_Model_Training\\models\\version_1\\best_efficientnet_b0.pth",
+  "checkpoint_sha256": "1f15bc4a573c9ff822df8c491490bd592e1a628ad05253951f024f9a873c989f",
+  "checkpoint_epoch": 18,
+  "classes": [
+    "broken_grain",
+    "chalky_grain",
+    "discolored_grain",
+    "whole_grain"
+  ],
+  "cnn_architecture": "efficientnet_b0",
+  "cnn_feature_count": 1280,
+  "opencv_feature_version": 2,
+  "mask_decoder": "pycocotools",
+  "opencv_region_policy": "complete instance: all components, with hole boundaries",
+  "opencv_feature_names": [
+    "area_px",
+    "perimeter_px",
+    "major_axis_px",
+    "minor_axis_px",
+    "aspect_ratio",
+    "eccentricity",
+    "solidity",
+    "extent",
+    "circularity",
+    "mean_r",
+    "mean_g",
+    "mean_b",
+    "gray_std",
+    "mean_saturation",
+    "mean_value",
+    "gray_entropy"
+  ],
+  "opencv_feature_count": 16,
+  "mask_source": "ground-truth COCO instance segmentation polygons / RLE",
+  "preprocessing": "RiceGrainDataset(..., train=False) for all splits",
+  "cnn_amp": true,
+  "output_npz_keys": [
+    "cnn_features",
+    "opencv_features",
+    "y",
+    "sample_ids"
+  ]
+}

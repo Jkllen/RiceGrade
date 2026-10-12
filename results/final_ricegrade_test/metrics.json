@@ -1,0 +1,86 @@
+{
+  "selected_configuration": "hybrid",
+  "samples": 1211,
+  "source_images": 95,
+  "accuracy": 0.9099917423616846,
+  "macro_precision": 0.9093805271481511,
+  "macro_recall": 0.8900765337364261,
+  "macro_f1": 0.89690148591911,
+  "per_class": {
+    "broken_grain": {
+      "precision": 0.8441558441558441,
+      "recall": 0.9154929577464789,
+      "f1-score": 0.8783783783783784,
+      "support": 284.0
+    },
+    "chalky_grain": {
+      "precision": 0.9266666666666666,
+      "recall": 0.7473118279569892,
+      "f1-score": 0.8273809523809523,
+      "support": 186.0
+    },
+    "discolored_grain": {
+      "precision": 0.9477806788511749,
+      "recall": 0.9477806788511749,
+      "f1-score": 0.9477806788511749,
+      "support": 383.0
+    },
+    "whole_grain": {
+      "precision": 0.918918918918919,
+      "recall": 0.9497206703910615,
+      "f1-score": 0.9340659340659341,
+      "support": 358.0
+    }
+  },
+  "confusion_matrix": [
+    [
+      260,
+      8,
+      7,
+      9
+    ],
+    [
+      25,
+      139,
+      8,
+      14
+    ],
+    [
+      13,
+      0,
+      363,
+      7
+    ],
+    [
+      10,
+      3,
+      5,
+      340
+    ]
+  ],
+  "classes": [
+    "broken_grain",
+    "chalky_grain",
+    "discolored_grain",
+    "whole_grain"
+  ],
+  "device": "cuda",
+  "cnn_amp": true,
+  "batch_size": 32,
+  "scope": "grain classification using supplied ground-truth COCO instance masks; segmentation not evaluated",
+  "parameter_selection_uses_test": false,
+  "retrained": false,
+  "test_manifest_sha256": "593b4286c6806b0487452caebd68d0ea287df5989ce4dcb1dba376ca86756a10",
+  "bundle_manifest_sha256": "438169dab11d3bdb44d9637b380c0086b4ac667af87ea7932cd405478a0ffc25",
+  "artifact_sha256": {
+    "class_labels.json": "dc169dc07073375405668ec95d8211b99fd1c3c6f95166548f060c6b0ab84939",
+    "efficientnet_b0.pth": "1f15bc4a573c9ff822df8c491490bd592e1a628ad05253951f024f9a873c989f",
+    "feature_schema.json": "bfe45d3d00f67f5b1fae4516ac5a7b54b3db263c3febbe958401cad11f00ae60",
+    "model_selection.json": "d51f94af3939f0ba6b5a053c927fa0f0406510f3ab5c9fc31a52910b2d730c53",
+    "preprocessing.json": "63b81faba985e8cae223e4dc86c13c4a96a1b33f35c15223197b7539c6608fa7",
+    "xgboost.json": "059866a41ce1957d61dea5cfe4141c8cc4b45a5c541d9d2779b02f6236b290eb"
+  },
+  "all_test_images_pil_opencv_rgb_equal": true,
+  "elapsed_seconds": 155.26422060001642,
+  "timing_scope": "image decode, COCO masks, features, classification, and report writing; not deployment latency"
+}

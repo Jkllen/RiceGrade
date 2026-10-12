@@ -1,0 +1,30 @@
+{
+  "mode": "hybrid",
+  "samples_train": 15024,
+  "samples_valid": 1266,
+  "feature_count": 1296,
+  "accuracy": 0.9028436018957346,
+  "macro_precision": 0.8923943039135946,
+  "macro_recall": 0.8849827628087115,
+  "macro_f1": 0.8882572039680634,
+  "best_iteration": 88,
+  "train_seconds": 38.08,
+  "device": "cpu",
+  "classes": [
+    "broken_grain",
+    "chalky_grain",
+    "discolored_grain",
+    "whole_grain"
+  ],
+  "feature_schema_path": "C:\\Users\\lawrence\\VSCode\\RiceGrade_Model_Training\\results\\version_1\\features_v3\\feature_schema.json",
+  "cnn_checkpoint_sha256": "1f15bc4a573c9ff822df8c491490bd592e1a628ad05253951f024f9a873c989f",
+  "parameters": {
+    "estimators": 600,
+    "early_stopping_rounds": 40,
+    "learning_rate": 0.05,
+    "max_depth": 5,
+    "seed": 42,
+    "subsample": 0.8,
+    "colsample_bytree": 0.8
+  }
+}

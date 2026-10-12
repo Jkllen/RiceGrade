@@ -1,0 +1,12 @@
+RiceGrade opencv_only XGBoost — VALIDATION only
+
+                  precision    recall  f1-score   support
+
+    broken_grain     0.8754    0.8780    0.8767       328
+    chalky_grain     0.7459    0.7624    0.7541       181
+discolored_grain     0.9412    0.9143    0.9275       420
+     whole_grain     0.9070    0.9258    0.9163       337
+
+        accuracy                         0.8863      1266
+       macro avg     0.8674    0.8701    0.8687      1266
+    weighted avg     0.8871    0.8863    0.8866      1266
