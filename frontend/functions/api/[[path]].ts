@@ -218,7 +218,7 @@ async function serviceInference(env:Env, image:R2Object, contentType:string):Pro
   try {
     res=await fetch(new URL('/predict/image',url).toString(), {method:'POST',
       headers:{'Content-Type':contentType,'X-RiceGrade-Service-Key':secret},body:bytes,
-      redirect:'error',signal:AbortSignal.timeout(120000)});
+      redirect:'manual',signal:AbortSignal.timeout(120000)});
   } catch (error: unknown) {
   const err = error instanceof Error
     ? error
@@ -238,6 +238,15 @@ async function serviceInference(env:Env, image:R2Object, contentType:string):Pro
     502,
     "Model service is unavailable or timed out. Please retry later."
     );
+  }
+  // Cloudflare Workers does not support fetch redirect: 'error'.
+  // Use 'manual' and explicitly reject redirects to protect the service token.
+  if (res.status >= 300 && res.status < 400) {
+    console.error('[RiceGrade ML] Unexpected redirect', {
+      status: res.status,
+      host: url.hostname,
+    });
+    fail(502, 'Model service returned an unexpected redirect');
   }
   const raw=await res.text();
   if(raw.length>1_000_000)fail(502,'Model result exceeded size limit');
