@@ -1,0 +1,1 @@
+See `../START_HERE_TUNNEL.md` for Windows setup, security, connection to Pages secrets, and an operational test checklist. For local serving, run `python start_local_model.py`, **not** `wrangler deploy` (that command is only for the paid Container variant).

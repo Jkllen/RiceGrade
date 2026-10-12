@@ -1,0 +1,17 @@
+name = "ricegrade-model"
+main = "src/index.js"
+compatibility_date = "2026-10-01"
+
+[[containers]]
+class_name = "RiceGradeModelContainer"
+image = "./Dockerfile"
+max_instances = 1
+instance_type = "standard-1"
+
+[[durable_objects.bindings]]
+name = "ML_CONTAINER"
+class_name = "RiceGradeModelContainer"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["RiceGradeModelContainer"]

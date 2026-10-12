@@ -3,8 +3,17 @@ import { DatabaseSync } from 'node:sqlite';
 import fs from 'node:fs';
 import assert from 'node:assert/strict';
 const { onRequest } = await import('./.api-built/[[path]].js');
+// Simulate Cloudflare Workers' production PBKDF2 cap, which Node's WebCrypto does not enforce.
+const originalDeriveBits = crypto.subtle.deriveBits.bind(crypto.subtle);
+crypto.subtle.deriveBits = async (algorithm, ...rest) => {
+  if (algorithm?.name === 'PBKDF2' && algorithm.iterations > 100_000) {
+    throw new DOMException('PBKDF2 iterations above 100000 are not supported on Cloudflare Workers', 'NotSupportedError');
+  }
+  return originalDeriveBits(algorithm, ...rest);
+};
 const sqlite = new DatabaseSync(':memory:');
 sqlite.exec(fs.readFileSync(new URL('../migrations/0001_initial.sql',import.meta.url),'utf8'));
+sqlite.exec(fs.readFileSync(new URL('../migrations/0002_screening_trials.sql',import.meta.url),'utf8')); 
 const d1 = {
   prepare(sql) {
     const q=sqlite.prepare(sql); let params=[];
@@ -56,6 +65,42 @@ result=await api('POST',`/evaluations/${id}/image`,fd,token,{IMAGES:images});ass
 result=await api('GET',`/evaluations/${id}/image`,undefined,token,{IMAGES:images});assert.equal(result.status,200);assert.equal(result.data.byteLength,14);
 result=await api('GET',`/evaluations/${id}/image`,undefined,other,{IMAGES:images});assert.equal(result.status,404);
 
+// Real model is not run in Node: mock the private HTTPS inference gateway.
+result=await api('GET',`/evaluations/${id}/screening`,undefined,token);
+assert.equal(result.status,200);assert.equal(result.data.status,'not_requested');
+result=await api('POST',`/evaluations/${id}/screening`,undefined,other,{IMAGES:images});assert.equal(result.status,404);
+result=await api('POST',`/evaluations/${id}/screening`,undefined,token,{IMAGES:images});assert.equal(result.status,503);
+const modelEnv={IMAGES:images,RICEGRADE_ML_ORIGIN:'https://ricegrade-model.example.workers.dev',RICEGRADE_ML_TOKEN:'a'.repeat(64)};
+const modelMock=globalThis.fetch;let modelRequests=0;
+globalThis.fetch=async (url,opts)=>{
+  assert.equal(url,'https://ricegrade-model.example.workers.dev/predict/image');
+  assert.equal(opts.headers['X-RiceGrade-Service-Key'],modelEnv.RICEGRADE_ML_TOKEN);
+  assert.equal(opts.headers['Content-Type'],'image/jpeg');
+  modelRequests++;
+  return Response.json({status:'experimental_unvalidated_segmentation',segmentation_source:'experimental_opencv_unvalidated',
+    measurement_basis:'grain_count_not_weight',manual_verification_required:true,model_configuration:'hybrid',
+    model_validation_scope:'held_out_annotated_masks_only',confidence_note:'not calibrated',
+    classes:['broken_grain','chalky_grain','discolored_grain','whole_grain'],total_grains:2,
+    counts:{broken_grain:1,chalky_grain:0,discolored_grain:0,whole_grain:1},
+    count_percentages:{broken_grain:50,chalky_grain:0,discolored_grain:0,whole_grain:50},
+    grains:[{grain_index:0,bbox_xywh:[10,10,5,15],category:'broken_grain',score:0.7},
+      {grain_index:1,bbox_xywh:[30,30,5,15],category:'whole_grain',score:0.8}],
+    segmentation_warnings:['Unvalidated segmentation'],dss_result:null,official_grade:null});
+};
+try {
+  result=await api('POST',`/evaluations/${id}/screening`,undefined,token,modelEnv);
+  assert.equal(result.status,200);assert.equal(result.data.status,'research_preview');
+  assert.equal(result.data.result.counts.whole_grain,1);
+  result=await api('GET',`/evaluations/${id}/screening`,undefined,token,modelEnv);
+  assert.equal(result.data.result.total_grains,2);
+  result=await api('POST',`/evaluations/${id}/screening`,undefined,token,modelEnv);
+  assert.equal(result.status,409);assert.equal(modelRequests,1);
+  result=await api('GET',`/evaluations/${id}/screening`,undefined,other,modelEnv);assert.equal(result.status,404);
+  const replace=new FormData();replace.append('image',fakeImage);
+  result=await api('POST',`/evaluations/${id}/image`,replace,token,modelEnv);assert.equal(result.status,200);
+  result=await api('GET',`/evaluations/${id}/screening`,undefined,token,modelEnv);
+  assert.equal(result.data.status,'not_requested');
+} finally {globalThis.fetch=modelMock;}
 result=await api('DELETE',`/evaluations/${id}`,undefined,token,{IMAGES:images});assert.equal(result.status,204);assert.equal(store.size,0);
 result=await api('GET','/evaluations',undefined,token);assert.equal(result.data.length,0);
 result=await api('POST','/auth/logout',undefined,token);assert.equal(result.status,204);
@@ -81,4 +126,4 @@ try {
   result=await api('POST','/auth/sign-in',{email:'student@example.org',password:'third-new-long-password-789'});
   assert.equal(result.status,200);
 } finally { globalThis.fetch=oldFetch; }
-console.log('PASS: Cloudflare Pages API integration smoke tests (auth, D1, ownership, recovery, R2, password reset, errors)');
+console.log('PASS: Cloudflare Pages API + experimental ML bridge tests (auth, D1, R2, ownership, invalidation, password reset)');

@@ -22,6 +22,8 @@ interface R2Bucket {
 interface Env {
   DB?: D1Database;
   IMAGES?: R2Bucket;
+  RICEGRADE_ML_ORIGIN?: string;
+  RICEGRADE_ML_TOKEN?: string;
   RESEND_API_KEY?: string;
   RESET_FROM_EMAIL?: string;
   RICEGRADE_PUBLIC_URL?: string;
@@ -31,6 +33,8 @@ type Row = Record<string, unknown>;
 type UserRow = Row & {id: number; email: string; full_name: string; role: string; password_hash: string; password_salt: string; password_iterations: number};
 type AssessmentRow = Row & { id: number; user_id: number };
 const encoder = new TextEncoder();
+// Cloudflare Workers WebCrypto rejects PBKDF2 iterations greater than 100,000.
+// Keep the stored per-account iteration count for verification compatibility.
 const ITERATIONS = 100_000;
 const SESSION_DAYS = 7;
 const MAX_IMAGE = 5 * 1024 * 1024;
@@ -154,6 +158,80 @@ async function serializeEval(db:D1Database,row:AssessmentRow):Promise<Row> {
   const image=await db.prepare('SELECT 1 FROM assessment_images WHERE assessment_id=?').bind(row.id).first();
   return {...row,has_image:!!image};
 }
+// The ML service is not publicly callable by a browser: the Pages Function
+// authenticates the user and transmits their private R2 object server-to-server.
+type ScreeningRow = {status:string;result_json:string|null;error_message:string|null;attempts:number;started_at:string;completed_at:string|null};
+const ML_CLASSES=['broken_grain','chalky_grain','discolored_grain','whole_grain'];
+function safeScreening(row:ScreeningRow|null):Row {
+  if (!row) return {status:'not_requested',result:null};
+  let result:unknown=null;
+  if (row.status==='research_preview' && row.result_json) {
+    try {result=JSON.parse(row.result_json);} catch {result=null;}
+  }
+  return {status:row.status,result,error_message:row.error_message,attempts:row.attempts,
+    started_at:row.started_at,completed_at:row.completed_at};
+}
+function parseScreening(result:unknown):Row {
+  if (!result || typeof result!=='object' || Array.isArray(result)) fail(502,'Model returned invalid screening data');
+  const r=result as Row;
+  if (r.status!=='experimental_unvalidated_segmentation' || r.segmentation_source!=='experimental_opencv_unvalidated' ||
+      r.measurement_basis!=='grain_count_not_weight' || r.manual_verification_required!==true ||
+      r.dss_result!==null || r.official_grade!==null || !Array.isArray(r.classes) ||
+      r.classes.join('|')!==ML_CLASSES.join('|') || !Number.isInteger(r.total_grains) ||
+      Number(r.total_grains)<1 || Number(r.total_grains)>160) fail(502,'Model returned unsupported screening data');
+  const counts=r.counts as Row;
+  const shares=r.count_percentages as Row;
+  if (!counts || !shares || typeof counts!=='object' || typeof shares!=='object' ||
+      ML_CLASSES.some(name => !Number.isInteger(counts[name]) || Number(counts[name])<0 ||
+        typeof shares[name]!=='number' || !Number.isFinite(shares[name]) || Number(shares[name])<0 || Number(shares[name])>100) ||
+      ML_CLASSES.reduce((sum,name)=>sum+Number(counts[name]),0)!==r.total_grains) fail(502,'Model returned inconsistent grain counts');
+  if(!Array.isArray(r.grains)||r.grains.length!==r.total_grains ||
+      !Array.isArray(r.segmentation_warnings) || r.segmentation_warnings.length>30 ||
+      r.segmentation_warnings.some((w:unknown)=>typeof w!=='string'||w.length>250)) fail(502,'Model returned invalid grain details');
+  if (r.grains.some((g:unknown)=> {
+    if (!g || typeof g!=='object') return true;
+    const p=g as Row;
+    return !Number.isInteger(p.grain_index) || !ML_CLASSES.includes(String(p.category)) ||
+      typeof p.score!=='number' || !Number.isFinite(p.score) || Number(p.score)<0 || Number(p.score)>1 ||
+      !Array.isArray(p.bbox_xywh) || p.bbox_xywh.length!==4 ||
+      p.bbox_xywh.some((n:unknown)=>typeof n!=='number'||!Number.isFinite(n)||n<0);
+  })) fail(502,'Model returned malformed grain predictions');
+  // Store a conservative selection of output fields, never arbitrary model JSON.
+  return {status:r.status,segmentation_source:r.segmentation_source,model_configuration:r.model_configuration,
+    classes:r.classes,counts, count_percentages:shares,total_grains:r.total_grains,grains:r.grains,
+    segmentation_warnings:r.segmentation_warnings,manual_verification_required:true,
+    measurement_basis:r.measurement_basis, model_validation_scope:r.model_validation_scope,
+    confidence_note:r.confidence_note,dss_result:null,official_grade:null};
+}
+async function serviceInference(env:Env, image:R2Object, contentType:string):Promise<Row> {
+  const endpoint=env.RICEGRADE_ML_ORIGIN;
+  const secret=env.RICEGRADE_ML_TOKEN;
+  if (!endpoint || !secret || secret.length<32) fail(503,'Model service is not configured. Contact the administrator.');
+  let url:URL;
+  try {url=new URL(endpoint);}catch{fail(503,'Model service address is invalid');}
+  if(url.protocol!=='https:' || url.username || url.password || url.search || url.hash || url.pathname!=='/')
+    fail(503,'Model service must use an HTTPS origin without a path');
+  if (!image.body) fail(404,'Rice image is missing from private storage');
+  const bytes=await new Response(image.body).arrayBuffer();
+  if (bytes.byteLength===0 || bytes.byteLength>MAX_IMAGE) fail(422,'Invalid stored image size');
+  let res:Response;
+  try {
+    res=await fetch(new URL('/predict/image',url).toString(), {method:'POST',
+      headers:{'Content-Type':contentType,'X-RiceGrade-Service-Key':secret},body:bytes,
+      redirect:'error',signal:AbortSignal.timeout(120000)});
+  } catch { fail(502,'Model service is unavailable or timed out. Please retry later.'); }
+  const raw=await res.text();
+  if(raw.length>1_000_000)fail(502,'Model result exceeded size limit');
+  let value:Row={};try{value=JSON.parse(raw) as Row;}catch{/* invalid upstream JSON */}
+  if (!res.ok) {
+    const info=typeof value.detail==='string'?value.detail:'';
+    if(res.status===422)fail(422,info.slice(0,240)||'Image does not meet experimental segmentation requirements');
+    if(res.status===429)fail(503,'Model service is busy. Retry shortly.');
+    fail(502,'Model service could not analyze this image');
+  }
+  return parseScreening(value);
+}
+
 async function sendReset(env:Env, to:string, rawToken:string): Promise<void> {
   const apiKey=env.RESEND_API_KEY;
   const from=env.RESET_FROM_EMAIL;
@@ -311,7 +389,7 @@ async function router(request:Request,env:Env):Promise<Response> {
           status:'awaiting_model',created_at:now,updated_at:now,has_image:false},201);
       }catch(e){if(String(e).includes('UNIQUE'))fail(409,'This test-run ID already exists in your account');throw e;}
     }
-    const match=path.match(/^\/api\/evaluations\/(\d+)(?:\/(image))?$/);
+    const match=path.match(/^\/api\/evaluations\/(\d+)(?:\/(image|screening))?$/);
     if(match){
       const id=Number(match[1]);
       const assessment=await owned(db,id,user.id);
@@ -322,6 +400,49 @@ async function router(request:Request,env:Env):Promise<Response> {
           if(meta && env.IMAGES)await env.IMAGES.delete(meta.object_key);
           await db.prepare('DELETE FROM assessments WHERE id=? AND user_id=?').bind(id,user.id).run();
           return new Response(null,{status:204,headers:{'Cache-Control':'no-store'}});
+        }
+      }
+      if(match[2]==='screening'){
+        if(method==='GET'){
+          const previous=await db.prepare('SELECT * FROM screening_trials WHERE assessment_id=?').bind(id).first<ScreeningRow>();
+          return response(safeScreening(previous));
+        }
+        if(method==='POST'){
+          // Do not schedule costly model inference without a connected model service.
+          if(!env.RICEGRADE_ML_ORIGIN || !env.RICEGRADE_ML_TOKEN)fail(503,'Model service is not connected yet');
+          const bucket=env.IMAGES;
+          if(!bucket)fail(503,'Private image storage is not connected');
+          const meta=await db.prepare('SELECT object_key,media_type FROM assessment_images WHERE assessment_id=?')
+            .bind(id).first<{object_key:string;media_type:string}>();
+          if(!meta)fail(422,'Attach a sample image before requesting screening');
+          const start=iso(), stale=new Date(Date.now()-10*60_000).toISOString();
+          const claimed=await db.prepare(`INSERT INTO screening_trials(assessment_id,status,attempts,started_at)
+            VALUES(?,'processing',1,?) ON CONFLICT(assessment_id) DO UPDATE SET
+            status='processing',attempts=screening_trials.attempts+1,started_at=excluded.started_at,
+            completed_at=NULL,error_message=NULL,result_json=NULL
+            WHERE screening_trials.attempts<3 AND
+              (screening_trials.status='failed' OR (screening_trials.status='processing' AND screening_trials.started_at<?))`)
+            .bind(id,start,stale).run();
+          if(Number((claimed.meta as Row|undefined)?.changes??0)!==1)fail(409,'Screening already completed, running, or reached its retry limit for this image. Replace the image to start a new trial.');
+          try {
+            const image=await bucket.get(meta.object_key);
+            if(!image)fail(404,'Saved image is not available');
+            const result=await serviceInference(env,image,meta.media_type);
+            const encoded=JSON.stringify(result);
+            if(encoded.length>450_000)fail(502,'Model result is too large');
+            await db.prepare(`UPDATE screening_trials SET status='research_preview',result_json=?,error_message=NULL,
+              completed_at=?,model_version=? WHERE assessment_id=?`)
+              .bind(encoded,iso(),String(result.model_configuration||'hybrid').slice(0,64),id).run();
+            await db.prepare('UPDATE assessments SET status=?,updated_at=? WHERE id=?')
+              .bind('screening_trial',iso(),id).run();
+            return response({status:'research_preview',result},200);
+          } catch(err) {
+            const message=err instanceof ApiError ? err.message : 'Model service request failed';
+            await db.prepare(`UPDATE screening_trials SET status='failed',error_message=?,completed_at=? WHERE assessment_id=?`)
+              .bind(message.slice(0,240),iso(),id).run();
+            if(err instanceof ApiError)throw err;
+            throw err;
+          }
         }
       }
       if(match[2]==='image'){
@@ -340,6 +461,7 @@ async function router(request:Request,env:Env):Promise<Response> {
             VALUES(?,?,?,?,?,?) ON CONFLICT(assessment_id) DO UPDATE SET object_key=excluded.object_key,
             media_type=excluded.media_type,filename=excluded.filename,size_bytes=excluded.size_bytes,uploaded_at=excluded.uploaded_at`)
             .bind(id,key,media,image.name.slice(0,160),data.byteLength,iso()).run();
+          await db.prepare('DELETE FROM screening_trials WHERE assessment_id=?').bind(id).run();
           await db.prepare('UPDATE assessments SET updated_at=? WHERE id=?').bind(iso(),id).run();
           return response({has_image:true,size_bytes:data.byteLength,message:'Image saved. ML screening remains pending.'});
         }
