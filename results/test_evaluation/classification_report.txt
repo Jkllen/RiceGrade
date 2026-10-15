@@ -1,0 +1,10 @@
+                  precision    recall  f1-score   support
+
+    broken_grain     0.8552    0.8944    0.8744       284
+    chalky_grain     0.8868    0.7581    0.8174       186
+discolored_grain     0.9306    0.9452    0.9378       383
+     whole_grain     0.9235    0.9441    0.9337       358
+
+        accuracy                         0.9042      1211
+       macro avg     0.8990    0.8854    0.8908      1211
+    weighted avg     0.9041    0.9042    0.9032      1211

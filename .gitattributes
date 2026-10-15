@@ -1,0 +1,5 @@
+# Preserve exact bytes used by model and feature integrity checks.
+/*.py -text
+/grain_crops/*.csv -text
+/grain_crops/*.json -text
+/models/** -text

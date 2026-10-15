@@ -1,0 +1,5 @@
+true_class / predicted_class,broken_grain,chalky_grain,discolored_grain,whole_grain
+broken_grain,254,10,12,8
+chalky_grain,22,141,8,15
+discolored_grain,13,3,362,5
+whole_grain,8,5,7,338

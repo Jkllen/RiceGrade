@@ -1,0 +1,9 @@
+{
+  "status": "early_stopped",
+  "completed_epochs": 22,
+  "best_epoch": 12,
+  "best_valid_macro_f1": 0.8880731556513818,
+  "checkpoint": "C:\\Users\\lawrence\\VSCode\\RiceGrade_Model_Training\\models\\efficientnet_20261015_114701_799602\\best_efficientnet_b0.pth",
+  "elapsed_seconds": 1564.3381851000013,
+  "test_data_used": false
+}

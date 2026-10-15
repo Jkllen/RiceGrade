@@ -1,0 +1,45 @@
+{
+  "selection": "C:\\Users\\lawrence\\VSCode\\RiceGrade_Model_Training\\results\\xgboost\\model_selection.json",
+  "model": "C:\\Users\\lawrence\\VSCode\\RiceGrade_Model_Training\\models\\xgboost\\hybrid_xgboost.json",
+  "model_sha256": "d3a83cb58132592c946a843d432397480b225f681d51c59133fa5d3f511ccac9",
+  "checkpoint": "C:\\Users\\lawrence\\VSCode\\RiceGrade_Model_Training\\models\\efficientnet_20261015_114701_799602\\best_efficientnet_b0.pth",
+  "checkpoint_sha256": "0cd92729998fae075166728b4d1ce67a46a22b5c3bd1f1e40f38775506491990",
+  "prediction_iteration_range": [
+    0,
+    93
+  ],
+  "test_manifests": "C:\\Users\\lawrence\\VSCode\\RiceGrade_Model_Training\\grain_crops_test",
+  "test_source_images": 95,
+  "test_split": {
+    "samples": 1211,
+    "manifest_sha256": "fcf9e5aff42b127d0f1c3eb8a0a4f5095b15d9966eb6ce2e2df4308ba91a7c06",
+    "annotation_sha256": {
+      "C:\\Users\\lawrence\\VSCode\\RiceGrade_Model_Training\\dataset\\test\\_annotations.coco.json": "cc4ee15ae1ee1ab2929a7836fe5fded8a4967b1740d26657c547c0188d593f32"
+    }
+  },
+  "cnn_device": "cuda",
+  "cnn_precision": "float32",
+  "batch_size": 32,
+  "num_workers": 4,
+  "xgboost_device": "cpu",
+  "xgboost_threads": 4,
+  "versions": {
+    "torch": "2.14.1+cu126",
+    "torchvision": "0.29.1+cu126",
+    "opencv": "5.0.0",
+    "xgboost": "3.2.0",
+    "sklearn": "1.9.1",
+    "numpy": "2.4.6"
+  },
+  "source_sha256": {
+    "C:\\Users\\lawrence\\VSCode\\RiceGrade_Model_Training\\evaluate_model.py": "41d29ce78a7a9a73c127c3f5aa69caee02984de5a8817c4a9325610bbbf741f3",
+    "C:\\Users\\lawrence\\VSCode\\RiceGrade_Model_Training\\train_xgboost.py": "3a30857c1693013f1c56ceaee0fd1b33e63d6f454623868d0a28a1c1d539ee80",
+    "C:\\Users\\lawrence\\VSCode\\RiceGrade_Model_Training\\results\\xgboost\\model_selection.json": "e4128cbf4e50df1ab623545a41f96bcf9f89c5a07d016888e0d94556a0ce55fe",
+    "C:\\Users\\lawrence\\VSCode\\RiceGrade_Model_Training\\results\\xgboost\\feature_schema.json": "d2ec18ae2769c93e93b1a00cfee36bf1c0118a8af71f14a3d6991562382bc8fe",
+    "C:\\Users\\lawrence\\VSCode\\RiceGrade_Model_Training\\grain_crops_test\\test.csv": "fcf9e5aff42b127d0f1c3eb8a0a4f5095b15d9966eb6ce2e2df4308ba91a7c06",
+    "C:\\Users\\lawrence\\VSCode\\RiceGrade_Model_Training\\grain_crops_test\\crop_info.json": "ceec9dfc97ffa46d46a3d806c55346720ccd1db11ffc2a8575b1d8afbb7e3272",
+    "C:\\Users\\lawrence\\VSCode\\RiceGrade_Model_Training\\grain_crops_test\\class_mapping.json": "ae45fec7bdedd8bd76c234e6bc5107e6b6ecf89eaadc1a4cdefe0738604a1245"
+  },
+  "test_data_used": true,
+  "model_retrained": false
+}

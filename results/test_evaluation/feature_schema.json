@@ -1,0 +1,80 @@
+{
+  "schema_version": 1,
+  "classes": [
+    "broken_grain",
+    "chalky_grain",
+    "discolored_grain",
+    "whole_grain"
+  ],
+  "cnn_feature_count": 1280,
+  "opencv_feature_names": [
+    "area_pixels",
+    "perimeter_pixels",
+    "major_length_pixels",
+    "minor_length_pixels",
+    "aspect_ratio",
+    "extent",
+    "solidity",
+    "circularity",
+    "red_mean",
+    "green_mean",
+    "blue_mean",
+    "red_std",
+    "green_std",
+    "blue_std",
+    "gray_std",
+    "gray_entropy"
+  ],
+  "hybrid_feature_count": 1296,
+  "hybrid_feature_order": "CNN features followed by OpenCV features",
+  "cnn_precision": "float32",
+  "cnn_layer": "EfficientNet-B0 pooled features, classifier removed",
+  "cnn_preprocessing": {
+    "image_size": 224,
+    "mean": [
+      0.485,
+      0.456,
+      0.406
+    ],
+    "std": [
+      0.229,
+      0.224,
+      0.225
+    ],
+    "augmentation": false
+  },
+  "opencv_input": "Original-resolution RGB grain crop and true COCO foreground mask",
+  "checkpoint": "C:\\Users\\lawrence\\VSCode\\RiceGrade_Model_Training\\models\\efficientnet_20261015_114701_799602\\best_efficientnet_b0.pth",
+  "checkpoint_sha256": "0cd92729998fae075166728b4d1ce67a46a22b5c3bd1f1e40f38775506491990",
+  "checkpoint_epoch": 12,
+  "splits": {
+    "train": {
+      "samples": 15024,
+      "manifest_sha256": "f0072e65422323b9b65835a8fdae45522a80150ec2c49857950dca78918477d4",
+      "annotation_sha256": {
+        "C:\\Users\\lawrence\\VSCode\\RiceGrade_Model_Training\\dataset\\train\\_annotations.coco.json": "fe884590ea0045a5936dded5275dd5c9d6a581a6318066755023aadf1f52da89"
+      }
+    },
+    "valid": {
+      "samples": 1266,
+      "manifest_sha256": "5ace84b5993d0525af93b4e8a866c7b43136422527810d422e9ecac429212d39",
+      "annotation_sha256": {
+        "C:\\Users\\lawrence\\VSCode\\RiceGrade_Model_Training\\dataset\\valid\\_annotations.coco.json": "3b04b0b14a857100cba336611a3a298f37c19f926afd343a3c0423a36e8070a2"
+      }
+    }
+  },
+  "source_sha256": {
+    "C:\\Users\\lawrence\\VSCode\\RiceGrade_Model_Training\\extract_features.py": "b5aec19804c4294f09fc3edb7138858d2e9e683e4f5e92c13fe4d3fb005e036a",
+    "C:\\Users\\lawrence\\VSCode\\RiceGrade_Model_Training\\grain_features.py": "7a6c9543f6789ad40c9c9fbed6cc23af730a1f8f10f0d42fa8b5fa7233ba2551",
+    "C:\\Users\\lawrence\\VSCode\\RiceGrade_Model_Training\\data_loader.py": "34b99cdbeca423f00fce95d3b3504569f52291d8def6b151c669b47a852a6a22",
+    "C:\\Users\\lawrence\\VSCode\\RiceGrade_Model_Training\\grain_crops\\crop_info.json": "ddb10964633077cf3ff035e0500fd2860fd8980a45aff3cea4300b9cae548778",
+    "C:\\Users\\lawrence\\VSCode\\RiceGrade_Model_Training\\grain_crops\\class_mapping.json": "ae45fec7bdedd8bd76c234e6bc5107e6b6ecf89eaadc1a4cdefe0738604a1245"
+  },
+  "versions": {
+    "torch": "2.14.1+cu126",
+    "torchvision": "0.29.1+cu126",
+    "numpy": "2.4.6",
+    "opencv": "5.0.0"
+  },
+  "test_data_used": false
+}

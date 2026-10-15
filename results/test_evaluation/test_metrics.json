@@ -1,0 +1,82 @@
+{
+  "split": "test",
+  "mode": "hybrid",
+  "samples": 1211,
+  "classes": [
+    "broken_grain",
+    "chalky_grain",
+    "discolored_grain",
+    "whole_grain"
+  ],
+  "accuracy": 0.9042113955408753,
+  "macro_precision": 0.8990249588621774,
+  "macro_recall": 0.8854336260795388,
+  "macro_f1": 0.8908178392762074,
+  "classification_report": {
+    "broken_grain": {
+      "precision": 0.8552188552188552,
+      "recall": 0.8943661971830986,
+      "f1-score": 0.8743545611015491,
+      "support": 284.0
+    },
+    "chalky_grain": {
+      "precision": 0.8867924528301887,
+      "recall": 0.7580645161290323,
+      "f1-score": 0.8173913043478261,
+      "support": 186.0
+    },
+    "discolored_grain": {
+      "precision": 0.9305912596401028,
+      "recall": 0.9451697127937336,
+      "f1-score": 0.9378238341968912,
+      "support": 383.0
+    },
+    "whole_grain": {
+      "precision": 0.9234972677595629,
+      "recall": 0.9441340782122905,
+      "f1-score": 0.9337016574585635,
+      "support": 358.0
+    },
+    "accuracy": 0.9042113955408753,
+    "macro avg": {
+      "precision": 0.8990249588621774,
+      "recall": 0.8854336260795388,
+      "f1-score": 0.8908178392762074,
+      "support": 1211.0
+    },
+    "weighted avg": {
+      "precision": 0.9040908550030164,
+      "recall": 0.9042113955408753,
+      "f1-score": 0.9032231212461689,
+      "support": 1211.0
+    }
+  },
+  "confusion_matrix": [
+    [
+      254,
+      10,
+      12,
+      8
+    ],
+    [
+      22,
+      141,
+      8,
+      15
+    ],
+    [
+      13,
+      3,
+      362,
+      5
+    ],
+    [
+      8,
+      5,
+      7,
+      338
+    ]
+  ],
+  "confusion_matrix_axes": "rows = true class; columns = predicted class",
+  "evaluation_scope": "Grain classification using ground-truth COCO segmentation masks"
+}

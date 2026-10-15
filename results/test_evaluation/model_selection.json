@@ -1,0 +1,28 @@
+{
+  "selected_mode": "hybrid",
+  "validation_scores": {
+    "mode": "hybrid",
+    "feature_count": 1296,
+    "accuracy": 0.8981042654028436,
+    "macro_precision": 0.8916559510388776,
+    "macro_recall": 0.8767158253503717,
+    "macro_f1": 0.8826659314690037,
+    "best_iteration": 92,
+    "best_rounds": 93
+  },
+  "selection_rule": "highest validation macro F1; accuracy then mode name break ties",
+  "model": "C:\\Users\\lawrence\\VSCode\\RiceGrade_Model_Training\\models\\xgboost\\hybrid_xgboost.json",
+  "model_sha256": "d3a83cb58132592c946a843d432397480b225f681d51c59133fa5d3f511ccac9",
+  "classes": [
+    "broken_grain",
+    "chalky_grain",
+    "discolored_grain",
+    "whole_grain"
+  ],
+  "cnn_checkpoint_sha256": "0cd92729998fae075166728b4d1ce67a46a22b5c3bd1f1e40f38775506491990",
+  "prediction_iteration_range": [
+    0,
+    93
+  ],
+  "test_data_used": false
+}

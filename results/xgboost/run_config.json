@@ -1,0 +1,39 @@
+{
+  "parameters": {
+    "objective": "multi:softprob",
+    "num_class": 4,
+    "tree_method": "hist",
+    "eval_metric": "mlogloss",
+    "n_estimators": 600,
+    "learning_rate": 0.05,
+    "max_depth": 5,
+    "subsample": 0.8,
+    "colsample_bytree": 0.8,
+    "early_stopping_rounds": 40,
+    "random_state": 42,
+    "device": "cpu",
+    "n_jobs": 4
+  },
+  "features": "C:\\Users\\lawrence\\VSCode\\RiceGrade_Model_Training\\results\\efficientnet_20261015_114701_799602\\features",
+  "classes": [
+    "broken_grain",
+    "chalky_grain",
+    "discolored_grain",
+    "whole_grain"
+  ],
+  "versions": {
+    "xgboost": "3.2.0",
+    "sklearn": "1.9.1",
+    "numpy": "2.4.6"
+  },
+  "source_sha256": {
+    "C:\\Users\\lawrence\\VSCode\\RiceGrade_Model_Training\\train_xgboost.py": "943f7eb665576891f219aa5e05cca3fcd1a1276f4340ddcf62d2842464a78155",
+    "C:\\Users\\lawrence\\VSCode\\RiceGrade_Model_Training\\results\\efficientnet_20261015_114701_799602\\features\\feature_schema.json": "d2ec18ae2769c93e93b1a00cfee36bf1c0118a8af71f14a3d6991562382bc8fe",
+    "C:\\Users\\lawrence\\VSCode\\RiceGrade_Model_Training\\results\\efficientnet_20261015_114701_799602\\features\\train.npz": "ad723e6cacd9903d2c1d8dc675664ef98830cfed533c1c35ebf9d116cf969af3",
+    "C:\\Users\\lawrence\\VSCode\\RiceGrade_Model_Training\\results\\efficientnet_20261015_114701_799602\\features\\valid.npz": "9376d5dd14582a2393fa5dc4ff3d5aee02c2fd06d0f7a177008f2825c879f7ff",
+    "C:\\Users\\lawrence\\VSCode\\RiceGrade_Model_Training\\results\\efficientnet_20261015_114701_799602\\features\\train_metadata.csv": "423247400fcc732eeb7564d8724d261c9710b3edbd55c030135d1983f7e93353",
+    "C:\\Users\\lawrence\\VSCode\\RiceGrade_Model_Training\\results\\efficientnet_20261015_114701_799602\\features\\valid_metadata.csv": "d4535905106c152a0b95449bb5f9e88c5c0e11f082c8e586ae434f03af50610c"
+  },
+  "prediction_loader": "XGBClassifier.load_model uses best_iteration automatically",
+  "test_data_used": false
+}

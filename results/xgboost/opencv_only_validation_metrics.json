@@ -1,0 +1,82 @@
+{
+  "mode": "opencv_only",
+  "feature_count": 16,
+  "accuracy": 0.8799368088467614,
+  "macro_precision": 0.8618098239510299,
+  "macro_recall": 0.8624839457508782,
+  "macro_f1": 0.861978133951859,
+  "best_iteration": 596,
+  "best_rounds": 597,
+  "classes": [
+    "broken_grain",
+    "chalky_grain",
+    "discolored_grain",
+    "whole_grain"
+  ],
+  "model_sha256": "02e2ebe202903d1db0e78607d93e454da950b03b2ac4ac457f5ee8e3c191088b",
+  "classification_report": {
+    "broken_grain": {
+      "precision": 0.8575757575757575,
+      "recall": 0.8628048780487805,
+      "f1-score": 0.8601823708206687,
+      "support": 328.0
+    },
+    "chalky_grain": {
+      "precision": 0.7541899441340782,
+      "recall": 0.7458563535911602,
+      "f1-score": 0.75,
+      "support": 181.0
+    },
+    "discolored_grain": {
+      "precision": 0.9408866995073891,
+      "recall": 0.9095238095238095,
+      "f1-score": 0.9249394673123487,
+      "support": 420.0
+    },
+    "whole_grain": {
+      "precision": 0.8945868945868946,
+      "recall": 0.9317507418397626,
+      "f1-score": 0.9127906976744186,
+      "support": 337.0
+    },
+    "accuracy": 0.8799368088467614,
+    "macro avg": {
+      "precision": 0.8618098239510299,
+      "recall": 0.8624839457508782,
+      "f1-score": 0.861978133951859,
+      "support": 1266.0
+    },
+    "weighted avg": {
+      "precision": 0.8802854862891024,
+      "recall": 0.8799368088467614,
+      "f1-score": 0.8799169502501144,
+      "support": 1266.0
+    }
+  },
+  "confusion_matrix": [
+    [
+      283,
+      22,
+      8,
+      15
+    ],
+    [
+      27,
+      135,
+      8,
+      11
+    ],
+    [
+      14,
+      13,
+      382,
+      11
+    ],
+    [
+      6,
+      9,
+      8,
+      314
+    ]
+  ]
+}

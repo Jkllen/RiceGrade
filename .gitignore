@@ -1,7 +1,62 @@
+# Python source: keep the prediction entry points and their required modules
+*.py
+!/predict_image.py
+!/predict_grain.py
+!/segment_grains.py
+!/data_loader.py
+!/grain_features.py
+!/extract_features.py
+!/evaluate_model.py
+!/train_xgboost.py
+
+# Local training guide
+/TRAINING.md
+
+# Python caches
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Local environments and credentials
 .venv/
 venv/
-__pycache__/
-*.pyc
+env/
 .env
+.env.*
+!.env.example
 
-datasets/
+# Downloaded dataset and generated manifests: keep folder placeholders
+/dataset/**
+!/dataset/**/
+!/dataset/**/.gitkeep
+/full_manifests/**
+!/full_manifests/**/
+!/full_manifests/**/.gitkeep
+
+# Ignore cached grain images; retain only the metadata needed to load the models
+/grain_crops/**
+!/grain_crops/**/
+!/grain_crops/**/.gitkeep
+!/grain_crops/train.csv
+!/grain_crops/valid.csv
+!/grain_crops/crop_info.json
+!/grain_crops/class_mapping.json
+/grain_crops_test/**
+!/grain_crops_test/**/
+!/grain_crops_test/**/.gitkeep
+
+# Extracted feature caches and local photo predictions
+/results/**/*.npz
+/results/**/*_metadata.csv
+/results/image_prediction/**
+!/results/image_prediction/**/
+!/results/image_prediction/**/.gitkeep
+
+# Keep models/, training/evaluation reports, and XGBoost selection/schema files
+
+# Operating system files
+.DS_Store
+Thumbs.db
+Desktop.ini
