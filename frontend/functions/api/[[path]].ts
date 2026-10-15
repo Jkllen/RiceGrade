@@ -196,8 +196,25 @@ function parseScreening(result:unknown):Row {
       !Array.isArray(p.bbox_xywh) || p.bbox_xywh.length!==4 ||
       p.bbox_xywh.some((n:unknown)=>typeof n!=='number'||!Number.isFinite(n)||n<0);
   })) fail(502,'Model returned malformed grain predictions');
+  const imgWidth=r.image_width;
+  const imgHeight=r.image_height;
+  if ((imgWidth!==undefined || imgHeight!==undefined) &&
+      (!Number.isInteger(imgWidth) || !Number.isInteger(imgHeight) ||
+       Number(imgWidth)<64 || Number(imgHeight)<64 ||
+       Number(imgWidth)*Number(imgHeight)>24_000_000))
+    fail(502,'Model returned invalid image dimensions');
+  if (r.grains.some((g:unknown) => {
+    const p=g as Row;
+    if (p.outline_xy===undefined) return false; // backwards-compatible model service
+    return !Array.isArray(p.outline_xy) || p.outline_xy.length>64 ||
+      p.outline_xy.some((xy:unknown) => !Array.isArray(xy) || xy.length!==2 ||
+        xy.some((v:unknown, axis:number) => !Number.isInteger(v) || Number(v)<0 ||
+          (axis===0 && Number.isInteger(imgWidth) && Number(v)>Number(imgWidth)) ||
+          (axis===1 && Number.isInteger(imgHeight) && Number(v)>Number(imgHeight))));
+  })) fail(502,'Model returned invalid grain outlines');
   // Store a conservative selection of output fields, never arbitrary model JSON.
   return {status:r.status,segmentation_source:r.segmentation_source,model_configuration:r.model_configuration,
+    image_width:r.image_width,image_height:r.image_height,
     classes:r.classes,counts, count_percentages:shares,total_grains:r.total_grains,grains:r.grains,
     segmentation_warnings:r.segmentation_warnings,manual_verification_required:true,
     measurement_basis:r.measurement_basis, model_validation_scope:r.model_validation_scope,

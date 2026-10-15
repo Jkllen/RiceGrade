@@ -6,3 +6,35 @@
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;animation:none!important;transition:none!important}}
 
 .pending-table{border:1px solid #e6eee7;border-radius:12px;overflow:hidden}.pending-table>div{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:13px 15px;border-bottom:1px solid #e6eee7;font-size:12px}.pending-table>div:last-child{border-bottom:0}.pending-table strong{font-weight:710;color:#395440}.pending-table span{font-size:11px;color:#a0aa9f}.waiting-section{display:flex;gap:14px;align-items:flex-start;border-radius:12px;padding:19px;background:#f6f8f5;color:#60806b}.waiting-section strong{display:block;color:#3e5a46;font-size:13px}.waiting-section p{margin:5px 0 0;font-size:12px;color:#869589;line-height:1.7}@media(max-width:520px){.pending-table>div{flex-direction:column;align-items:flex-start;gap:3px}}
+
+/* RiceGrade mobile camera and per-grain visual inspection */
+.sample-photo-input{display:flex;flex-direction:column;gap:10px;margin:13px 0 20px;align-items:flex-start}
+.sample-photo-title{font-size:13px;color:#31543e}
+.sample-photo-actions{display:flex;flex-wrap:wrap;gap:9px}
+.visually-hidden-file{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;overflow:hidden}
+.camera-preview-panel{width:min(100%,620px);padding:12px;border-radius:12px;border:1px solid #d8e8dd;background:#f2f7f3}
+.camera-preview-panel video{display:block;width:100%;height:auto;max-height:440px;object-fit:contain;background:#192620;border-radius:8px}
+.camera-preview-panel p{font-size:12px;color:#576d5e;margin:9px 0}
+.sample-photo-error{font-size:12px;color:#a44a32;margin:2px 0}
+.grain-inspection{margin:15px 0 20px;padding:15px;border:1px solid #d8e8dd;border-radius:12px;background:#fbfdfb}
+.grain-inspection-heading{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:10px}
+.grain-inspection-heading strong{font-size:14px;color:#224c35}
+.grain-inspection-heading p{font-size:12px;color:#667e6e;margin:4px 0}
+.grain-inspection-toggles{display:flex;gap:14px;flex-wrap:wrap}
+.grain-inspection-toggles label{display:flex;align-items:center;gap:5px;font-size:12px;color:#42624c;white-space:nowrap}
+.grain-inspection-image{position:relative;display:block;width:fit-content;max-width:100%;line-height:0;border:1px solid #dce5da;border-radius:8px;overflow:hidden;background:#172419}
+.grain-inspection-image img{display:block;max-width:100%;width:auto;height:auto;max-height:650px;object-fit:contain}
+.grain-overlay-svg{pointer-events:none;position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.grain-class-legend{display:flex;flex-wrap:wrap;gap:8px 17px;margin-top:12px;font-size:12px;color:#365642}
+.grain-class-legend span{display:inline-flex;align-items:center;gap:5px}
+.grain-class-legend i{display:inline-block;width:11px;height:11px;border-radius:3px}
+.grain-inspection-note{font-size:11px;margin:9px 0 0;line-height:1.6}
+@media (max-width:640px){.sample-photo-actions{width:100%}.sample-photo-actions .button{flex:1 1 100%;justify-content:center}.grain-inspection{padding:10px}.grain-inspection-heading{gap:7px}}
+
+.grain-region-details{margin-top:15px;border-top:1px solid #dceadf;padding-top:12px}
+.grain-region-details summary{cursor:pointer;font-size:12px;font-weight:750;color:#265840}
+.grain-region-scroll{overflow-x:auto;max-height:280px;overflow-y:auto;margin:10px 0}
+.grain-region-scroll table{width:100%;font-size:11px;border-collapse:collapse;text-align:left}
+.grain-region-scroll th,.grain-region-scroll td{border-bottom:1px solid #e4ece5;padding:6px 8px;white-space:nowrap}
+.grain-region-class{display:inline-flex;align-items:center;gap:7px}
+.grain-region-class i{display:inline-block;width:10px;height:10px;border-radius:2px}

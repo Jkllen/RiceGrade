@@ -34,9 +34,11 @@ export type ScreeningResult = {
   model_configuration: string;
   classes: string[];
   total_grains: number;
+  image_width?: number;
+  image_height?: number;
   counts: Record<string, number>;
   count_percentages: Record<string, number>;
-  grains: {grain_index: number; category: string; score: number; bbox_xywh: number[]}[];
+  grains: {grain_index: number; category: string; score: number; bbox_xywh: number[]; outline_xy?: [number, number][]}[];
   segmentation_warnings: string[];
   manual_verification_required: true;
   measurement_basis: 'grain_count_not_weight';
