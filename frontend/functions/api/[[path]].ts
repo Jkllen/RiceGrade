@@ -19,7 +19,11 @@ interface R2Bucket {
   get(key: string): Promise<R2Object | null>;
   delete(key: string): Promise<unknown>;
 }
+interface ModelWorkerService {
+  fetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response>;
+}
 interface Env {
+  RICEGRADE_MODEL?: ModelWorkerService; // Private Cloudflare Worker service binding
   DB?: D1Database;
   IMAGES?: R2Bucket;
   RICEGRADE_ML_ORIGIN?: string;
@@ -221,49 +225,49 @@ function parseScreening(result:unknown):Row {
     confidence_note:r.confidence_note,dss_result:null,official_grade:null};
 }
 async function serviceInference(env:Env, image:R2Object, contentType:string):Promise<Row> {
-  const endpoint=env.RICEGRADE_ML_ORIGIN;
+  // Prefer the private Cloudflare service binding. The HTTPS origin is an optional
+  // legacy rollback path; never call both or expose this token to the browser.
+  const internalWorker=env.RICEGRADE_MODEL;
   const secret=env.RICEGRADE_ML_TOKEN;
-  if (!endpoint || !secret || secret.length<32) fail(503,'Model service is not configured. Contact the administrator.');
-  let url:URL;
-  try {url=new URL(endpoint);}catch{fail(503,'Model service address is invalid');}
-  if(url.protocol!=='https:' || url.username || url.password || url.search || url.hash || url.pathname!=='/')
-    fail(503,'Model service must use an HTTPS origin without a path');
+  if (!secret || secret.length<32) fail(503,'Model service secret is not configured');
+  let target:string;
+  let serviceName:string;
+  if (internalWorker) {
+    target='https://ricegrade-model.internal/predict/image';
+    serviceName='ricegrade-model (service binding)';
+  } else {
+    const endpoint=env.RICEGRADE_ML_ORIGIN;
+    if (!endpoint) fail(503,'Model service is not connected yet');
+    let url:URL;
+    try {url=new URL(endpoint);}catch{fail(503,'Model service address is invalid');}
+    if(url.protocol!=='https:' || url.username || url.password || url.search || url.hash || url.pathname!=='/')
+      fail(503,'Model service must use an HTTPS origin without a path');
+    target=new URL('/predict/image',url).toString();
+    serviceName=url.hostname;
+  }
   if (!image.body) fail(404,'Rice image is missing from private storage');
   const bytes=await new Response(image.body).arrayBuffer();
   if (bytes.byteLength===0 || bytes.byteLength>MAX_IMAGE) fail(422,'Invalid stored image size');
   let res:Response;
   try {
-    res=await fetch(new URL('/predict/image',url).toString(), {method:'POST',
+    const options:RequestInit={method:'POST',
       headers:{'Content-Type':contentType,'X-RiceGrade-Service-Key':secret},body:bytes,
-      redirect:'manual',signal:AbortSignal.timeout(120000)});
-  } catch (error: unknown) {
-  const err = error instanceof Error
-    ? error
-    : new Error(String(error));
-
-  const cause = err.cause;
-
-  console.error("[RiceGrade ML] Outbound fetch failed", {
-    host: url.hostname,
-    errorName: err.name,
-    errorMessage: err.message,
-    causeName: cause instanceof Error ? cause.name : undefined,
-    causeMessage: cause instanceof Error ? cause.message : undefined,
-  });
-
-  fail(
-    502,
-    "Model service is unavailable or timed out. Please retry later."
-    );
-  }
-  // Cloudflare Workers does not support fetch redirect: 'error'.
-  // Use 'manual' and explicitly reject redirects to protect the service token.
-  if (res.status >= 300 && res.status < 400) {
-    console.error('[RiceGrade ML] Unexpected redirect', {
-      status: res.status,
-      host: url.hostname,
+      redirect:'manual',signal:AbortSignal.timeout(120000)};
+    res=internalWorker?await internalWorker.fetch(target,options):await fetch(target,options);
+  } catch (error:unknown) {
+    const err=error instanceof Error?error:new Error(String(error));
+    const cause=err.cause;
+    console.error('[RiceGrade ML] Inference request failed', {
+      service:serviceName,errorName:err.name,errorMessage:err.message,
+      causeName:cause instanceof Error?cause.name:undefined,
+      causeMessage:cause instanceof Error?cause.message:undefined,
     });
-    fail(502, 'Model service returned an unexpected redirect');
+    fail(502,'Model service is unavailable or timed out. Please retry later.');
+  }
+  // Workers does not support fetch redirect: 'error'. Reject redirects explicitly.
+  if (res.status>=300 && res.status<400) {
+    console.error('[RiceGrade ML] Unexpected redirect', {status:res.status,service:serviceName});
+    fail(502,'Model service returned an unexpected redirect');
   }
   const raw=await res.text();
   if(raw.length>1_000_000)fail(502,'Model result exceeded size limit');
@@ -454,7 +458,7 @@ async function router(request:Request,env:Env):Promise<Response> {
         }
         if(method==='POST'){
           // Do not schedule costly model inference without a connected model service.
-          if(!env.RICEGRADE_ML_ORIGIN || !env.RICEGRADE_ML_TOKEN)fail(503,'Model service is not connected yet');
+          if((!env.RICEGRADE_MODEL && !env.RICEGRADE_ML_ORIGIN) || !env.RICEGRADE_ML_TOKEN)fail(503,'Model service is not connected yet');
           const bucket=env.IMAGES;
           if(!bucket)fail(503,'Private image storage is not connected');
           const meta=await db.prepare('SELECT object_key,media_type FROM assessment_images WHERE assessment_id=?')

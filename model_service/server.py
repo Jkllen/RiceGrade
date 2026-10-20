@@ -14,6 +14,7 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 
 import numpy as np
+import cv2
 from fastapi import FastAPI, Header, HTTPException, Request
 from fastapi.concurrency import run_in_threadpool
 from PIL import Image, ImageOps, UnidentifiedImageError
@@ -69,12 +70,26 @@ def infer(rgb: np.ndarray, predictor: RiceGradePredictor, resize_warning: str | 
         raise ValueError(f'Too many isolated regions ({len(segmentation.masks)}); use fewer separated grains in the image')
     values = predictor.predict(rgb, segmentation.masks)
     # Keep response size bounded; D1 stores only a count-based research preview.
+    # A simplified largest external contour helps the operator inspect what OpenCV actually isolated.
+    # Grain order matches the corresponding segmentation mask order.
+    def outline(mask: np.ndarray) -> list[list[int]]:
+        contours, _ = cv2.findContours(mask.astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        if not contours:
+            return []
+        contour = max(contours, key=cv2.contourArea)
+        epsilon = max(1.0, cv2.arcLength(contour, True) * 0.012)
+        approx = cv2.approxPolyDP(contour, epsilon, True).reshape(-1, 2)
+        if len(approx) > 64:
+            approx = approx[np.linspace(0, len(approx) - 1, 64).astype(int)]
+        return [[int(x), int(y)] for x, y in approx] if len(approx) >= 3 else []
+
     grains = [{
         'grain_index': grain['grain_index'],
         'bbox_xywh': grain['bbox_xywh'],
+        'outline_xy': outline(segmentation.masks[index]),
         'category': grain['category'],
         'score': round(grain['confidence'], 5),
-    } for grain in values['grains']]
+    } for index, grain in enumerate(values['grains'])]
     return {
         'status': 'experimental_unvalidated_segmentation',
         'segmentation_source': 'experimental_opencv_unvalidated',
@@ -82,6 +97,8 @@ def infer(rgb: np.ndarray, predictor: RiceGradePredictor, resize_warning: str | 
         'model_configuration': values['selected_configuration'],
         'classes': list(predictor.classes),
         'total_grains': values['total_grains'],
+        'image_width': int(rgb.shape[1]),
+        'image_height': int(rgb.shape[0]),
         'counts': values['counts'],
         'count_percentages': values['percentages'],
         'grains': grains,

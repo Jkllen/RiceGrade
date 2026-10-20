@@ -100,6 +100,24 @@ try {
   result=await api('POST',`/evaluations/${id}/image`,replace,token,modelEnv);assert.equal(result.status,200);
   result=await api('GET',`/evaluations/${id}/screening`,undefined,token,modelEnv);
   assert.equal(result.data.status,'not_requested');
+  // Production route: private Cloudflare service binding, not the public model origin.
+  let internalCalls=0;
+  const privateEnv={...modelEnv, RICEGRADE_ML_ORIGIN:undefined, RICEGRADE_MODEL:{
+    async fetch(target,opts) {
+      internalCalls++;
+      assert.equal(target,'https://ricegrade-model.internal/predict/image');
+      assert.equal(opts.headers['X-RiceGrade-Service-Key'],modelEnv.RICEGRADE_ML_TOKEN);
+      return globalThis.fetch('https://ricegrade-model.example.workers.dev/predict/image',opts);
+    }
+  }};
+  result=await api('POST',`/evaluations/${id}/screening`,undefined,token,privateEnv);
+  assert.equal(result.status,200);
+  assert.equal(result.data.result.total_grains,2);
+  assert.equal(internalCalls,1);
+  // Missing secret must be rejected BEFORE any internal container invocation.
+  result=await api('POST',`/evaluations/${id}/screening`,undefined,token,{...privateEnv,RICEGRADE_ML_TOKEN:undefined});
+  assert.equal(result.status,503);
+  assert.equal(internalCalls,1);
 } finally {globalThis.fetch=modelMock;}
 result=await api('DELETE',`/evaluations/${id}`,undefined,token,{IMAGES:images});assert.equal(result.status,204);assert.equal(store.size,0);
 result=await api('GET','/evaluations',undefined,token);assert.equal(result.data.length,0);

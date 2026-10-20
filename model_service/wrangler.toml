@@ -1,6 +1,7 @@
 name = "ricegrade-model"
 main = "src/index.js"
-compatibility_date = "2026-10-01"
+compatibility_date = "2026-10-20"
+workers_dev = false
 
 [[containers]]
 class_name = "RiceGradeModelContainer"
@@ -16,7 +17,5 @@ class_name = "RiceGradeModelContainer"
 tag = "v1"
 new_sqlite_classes = ["RiceGradeModelContainer"]
 
-[vars]
-RICEGRADE_ML_ORIGIN = "https://nice-arguments-countries-forth.trycloudflare.com"
 
 

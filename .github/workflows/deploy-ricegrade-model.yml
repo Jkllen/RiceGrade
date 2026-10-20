@@ -1,0 +1,118 @@
+name: Deploy RiceGrade Model Container
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ricegrade-model-container-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Verify model and deploy to Cloudflare
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    defaults:
+      run:
+        shell: bash
+    env:
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+
+    steps:
+      - name: Checkout RiceGrade repository
+        uses: actions/checkout@v4
+
+      - name: Prepare Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Download frozen EfficientNet checkpoint from private R2
+        env:
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check 'boto3>=1.35,<2'
+          python - <<'PY'
+          import hashlib
+          import json
+          import os
+          from pathlib import Path
+          import boto3
+          from botocore.config import Config
+
+          required = ('CLOUDFLARE_ACCOUNT_ID', 'R2_ACCESS_KEY_ID', 'R2_SECRET_ACCESS_KEY')
+          if any(not os.environ.get(name) for name in required):
+              raise SystemExit('Missing Cloudflare account ID or R2 read-only credentials in GitHub Secrets.')
+          bundle = Path('model_service/models/final_ricegrade')
+          manifest = json.loads((bundle / 'manifest.json').read_text(encoding='utf-8'))
+          filename = 'efficientnet_b0.pth'
+          expected = manifest['files'][filename]
+          destination = bundle / filename
+          destination.parent.mkdir(parents=True, exist_ok=True)
+          client = boto3.client(
+              's3',
+              endpoint_url=f"https://{os.environ['CLOUDFLARE_ACCOUNT_ID']}.r2.cloudflarestorage.com",
+              aws_access_key_id=os.environ['R2_ACCESS_KEY_ID'],
+              aws_secret_access_key=os.environ['R2_SECRET_ACCESS_KEY'],
+              region_name='auto',
+              config=Config(signature_version='s3v4', s3={'addressing_style': 'path'}),
+          )
+          client.download_file('ricegrade-model-artifacts', filename, str(destination))
+          actual = hashlib.sha256(destination.read_bytes()).hexdigest()
+          if actual != expected:
+              destination.unlink(missing_ok=True)
+              raise SystemExit('EfficientNet checkpoint SHA-256 mismatch. Deployment stopped.')
+          print('PASS: R2 checkpoint matches model manifest SHA-256.')
+          PY
+          python model_service/check_bundle.py
+
+      - name: Ensure model checkpoint is not tracked by Git
+        run: |
+          set -euo pipefail
+          if git ls-files --error-unmatch model_service/models/final_ricegrade/efficientnet_b0.pth >/dev/null 2>&1; then
+            echo 'ERROR: The private checkpoint has been committed to Git.' >&2
+            exit 1
+          fi
+          echo 'PASS: checkpoint is not committed to the Git repository.'
+
+      - name: Prepare Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install Wrangler and verify Docker
+        working-directory: model_service
+        run: |
+          set -euo pipefail
+          docker info >/dev/null
+          npm install --no-audit --no-fund
+          npx wrangler --version
+
+      - name: Build and deploy private model Worker plus container
+        working-directory: model_service
+        run: |
+          set -euo pipefail
+          npx wrangler deploy
+
+      - name: Configure private inference authentication
+        working-directory: model_service
+        env:
+          RICEGRADE_ML_TOKEN: ${{ secrets.RICEGRADE_ML_TOKEN }}
+        run: |
+          set -euo pipefail
+          if [ "${#RICEGRADE_ML_TOKEN}" -lt 32 ]; then
+            echo 'ERROR: RICEGRADE_ML_TOKEN GitHub Secret must be at least 32 characters.' >&2
+            exit 1
+          fi
+          printf '%s' "$RICEGRADE_ML_TOKEN" | npx wrangler secret put RICEGRADE_ML_TOKEN
+          echo 'PASS: Worker authentication secret configured.'
+
+      - name: List provisioned Cloudflare containers
+        working-directory: model_service
+        run: npx wrangler containers list

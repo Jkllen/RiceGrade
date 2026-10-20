@@ -5,3 +5,11 @@ __pycache__
 *.pyc
 demo_tmp/
 tests/
+# Never copy local credentials or Cloudflare development state into the image.
+.env
+.env.*
+.dev.vars
+.dev.vars.*
+.wrangler/
+node_modules/
+*.log

@@ -11,6 +11,10 @@ database_id = "45448a5d-1d3d-41de-9e3f-bbf005e19569"
 binding = "IMAGES"
 bucket_name = "ricegrade-images"
 
-[vars]
-RICEGRADE_ML_ORIGIN = "https://nice-arguments-countries-forth.trycloudflare.com/"
+# Route authenticated Pages API requests to the separately deployed model Worker.
+# Binding stays private inside Cloudflare; no public model URL is required.
+[[services]]
+binding = "RICEGRADE_MODEL"
+service = "ricegrade-model"
+
 
