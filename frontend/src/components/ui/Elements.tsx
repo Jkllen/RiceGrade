@@ -7,6 +7,7 @@ export function Icon({ name, size = 20 }: { name: string; size?: number }) {
     analysis: <><path d="M12 3v18M3 12h18"/><circle cx="12" cy="12" r="8.5"/></>,
     reports: <><path d="M8 3h7l4 4v14H5V3zM14 3v5h5M8 12h8M8 16h8"/></>,
     history: <><circle cx="12" cy="12" r="9"/><path d="M12 6v6l4 2"/></>,
+    about: <><circle cx="12" cy="12" r="9"/><path d="M12 10v7M12 7h.01"/></>,
     profile: <><circle cx="12" cy="8" r="4"/><path d="M4 21c0-5 3-8 8-8s8 3 8 8"/></>,
     logout: <><path d="M10 4H5v16h5M15 8l4 4-4 4M8 12h11"/></>,
     arrow: <><path d="M4 12h16m-6-6 6 6-6 6"/></>,

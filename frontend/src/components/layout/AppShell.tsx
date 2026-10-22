@@ -1,12 +1,13 @@
 import { useState, type ReactNode } from 'react';
 import { Icon } from '../ui/Elements';
-export type ScreenKey = 'dashboard' | 'analysis' | 'reports' | 'history' | 'profile';
+export type ScreenKey = 'dashboard' | 'analysis' | 'reports' | 'history' | 'profile' | 'about';
 const navigation: { key: ScreenKey; label: string; icon: string }[] = [
   { key: 'dashboard', label: 'Dashboard', icon: 'dashboard' },
   { key: 'analysis', label: 'Test-Mill Evaluation', icon: 'analysis' },
-  { key: 'reports', label: 'Evaluation Reports', icon: 'reports' },
+  { key: 'reports', label: 'Test-Mill Evaluation Report', icon: 'reports' },
   { key: 'history', label: 'Assessment History', icon: 'history' },
   { key: 'profile', label: 'My Profile', icon: 'profile' },
+  { key: 'about', label: 'About RiceGrade', icon: 'about' },
 ];
 type Props = { active: ScreenKey; onNavigate: (screen: ScreenKey) => void; onLogout: () => void; userName: string; email: string; children: ReactNode };
 export function AppShell({ active, onNavigate, onLogout, userName, email, children }: Props) {
@@ -24,6 +25,6 @@ export function AppShell({ active, onNavigate, onLogout, userName, email, childr
       <div className="sidebar-bottom"><div className="account-identity"><span className="avatar">{userName.trim().charAt(0).toUpperCase() || 'R'}</span><div><strong>{userName || 'Account'}</strong><span title={email}>{email}</span></div></div><button onClick={onLogout} className="logout-button"><Icon name="logout" size={18}/>Sign out</button></div>
     </aside>
     <main className="content"><div className="content-container">{children}</div></main>
-    <nav className="mobile-bottom-nav" aria-label="Mobile navigation">{navigation.map(item => <button key={item.key} className={item.key === active ? 'active' : ''} onClick={() => navigate(item.key)} aria-label={item.label} aria-current={item.key === active ? 'page' : undefined}><Icon name={item.icon} size={21}/><span>{item.key === 'analysis' ? 'New Test' : item.key === 'reports' ? 'Reports' : item.key === 'dashboard' ? 'Home' : item.key === 'history' ? 'History' : 'Profile'}</span></button>)}</nav>
+    <nav className="mobile-bottom-nav" aria-label="Mobile navigation">{navigation.filter(item => item.key !== 'about').map(item => <button key={item.key} className={item.key === active ? 'active' : ''} onClick={() => navigate(item.key)} aria-label={item.label} aria-current={item.key === active ? 'page' : undefined}><Icon name={item.icon} size={21}/><span>{item.key === 'analysis' ? 'New Test' : item.key === 'reports' ? 'Reports' : item.key === 'dashboard' ? 'Home' : item.key === 'history' ? 'History' : 'Profile'}</span></button>)}</nav>
   </div>;
 }

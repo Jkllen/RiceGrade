@@ -6,9 +6,10 @@ import { AnalysisPage } from './features/analysis/pages/AnalysisPage';
 import { ReportsPage } from './features/reports/pages/ReportsPage';
 import { HistoryPage } from './features/history/pages/HistoryPage';
 import { ProfilePage } from './features/profile/pages/ProfilePage';
+import { AboutPage } from './features/about/pages/AboutPage';
 import { apiRequest, clearToken, getToken, saveToken, type AuthReply, type User } from './lib/authApi';
 
-const routes: ScreenKey[] = ['dashboard','analysis','reports','history','profile'];
+const routes: ScreenKey[] = ['dashboard','analysis','reports','history','profile','about'];
 const fromHash = (): ScreenKey => { const key=window.location.hash.slice(1) as ScreenKey;return routes.includes(key) ? key : 'dashboard'; };
 export function App() {
   const [user, setUser] = useState<User | null>(null);
@@ -31,11 +32,12 @@ export function App() {
   if(!user||resetToken)return <AuthPage mode={authMode} onMode={setAuthMode} onSuccess={authenticated} resetToken={resetToken} clearReset={clearReset}/>;
   let page;
   switch(screen){
-    case 'analysis':page=<AnalysisPage onCreated={touched} onHistory={()=>navigate('history')}/>;break;
+    case 'analysis':page=<AnalysisPage onCreated={touched} onOpenAssessment={id=>{setSelectedId(id);navigate('history');}}/>;break;
     case 'reports':page=<ReportsPage onNew={()=>navigate('analysis')} onHistory={(id)=>{setSelectedId(id??null);navigate('history');}} refresh={refresh}/>;break;
     case 'history':page=<HistoryPage onNew={()=>navigate('analysis')} refresh={refresh} selectedId={selectedId} clearSelected={()=>setSelectedId(null)} onSelect={setSelectedId} onChanged={touched}/>;break;
     case 'profile':page=<ProfilePage user={user} onUpdated={setUser}/>;break;
-    default:page=<DashboardPage onNavigate={navigate} onSelect={id=>{setSelectedId(id);navigate('history');}} user={user} refresh={refresh}/>;
+    case 'about':page=<AboutPage/>;break;
+    default:page=<DashboardPage onNavigate={navigate} onLogout={()=>void logout()} onSelect={id=>{setSelectedId(id);navigate('history');}} user={user} refresh={refresh}/>;
   }
-  return <AppShell active={screen} onNavigate={navigate} onLogout={()=>void logout()} userName={user.full_name} email={user.email}>{page}<footer className="content-footer">RiceGrade research prototype · Physical recovery available · Visual screening pending validation</footer></AppShell>;
+  return <AppShell active={screen} onNavigate={navigate} onLogout={()=>void logout()} userName={user.full_name} email={user.email}>{page}<footer className="content-footer">RiceGrade · Milled rice quality screening and test-mill insights</footer></AppShell>;
 }

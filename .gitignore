@@ -23,6 +23,7 @@ artifacts/**
 *.joblib
 *.pkl
 .DS_Store
+.github
 # Cloudflare local state, generated API smoke-test output
 frontend/.wrangler/
 frontend/cloudflare-tests/.api-built/
