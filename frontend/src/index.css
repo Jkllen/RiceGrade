@@ -203,3 +203,42 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
 .brand-logo{width:38px;height:38px;object-fit:contain;flex:0 0 auto}
 .brand-logo.small{width:27px;height:27px}
 .auth-brand .brand-logo{width:43px;height:43px}
+
+/* Mobile drawer: preserve a comfortable close-button hit area inside its right edge. */
+@media (max-width:800px){
+  .sidebar{
+    width:min(88vw,320px);
+    min-width:0;
+    max-width:calc(100vw - 18px);
+    padding:24px 16px 20px;
+  }
+  .sidebar .brand{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    min-width:0;
+    width:100%;
+    padding:0 2px;
+  }
+  .sidebar .brand>div{
+    flex:1 1 auto;
+    min-width:0;
+    overflow:hidden;
+  }
+  .sidebar .brand>div>strong,
+  .sidebar .brand>div>span{
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+  }
+  .sidebar .brand .sidebar-close{
+    display:grid!important;
+    flex:0 0 40px;
+    width:40px;
+    height:40px;
+    margin-left:auto;
+    padding:0;
+    place-items:center;
+    color:var(--hunter-green);
+  }
+}
