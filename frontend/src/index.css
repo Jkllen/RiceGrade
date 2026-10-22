@@ -131,3 +131,75 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
 .password-help-row{display:flex;justify-content:flex-end;margin-top:-5px}
 .password-help-row .text-button{font-size:13px;padding:0;border:0;background:transparent;text-decoration:underline;text-underline-offset:3px}
 .auth-reset-hint{font-size:12px;line-height:1.6;margin:10px 0 0;color:var(--rg-ink,#2d2c25)}
+
+
+/* RiceGrade 2026 palette — hunter, sage, yellow-green, vanilla, brick. */
+:root{
+  --hunter-green:#386641;--sage-green:#6a994e;--yellow-green:#a7c957;
+  --vanilla-cream:#f2e8cf;--blushed-brick:#bc4749;
+  --rg-olive:var(--hunter-green);--rg-leaf:var(--sage-green);--rg-tan:var(--yellow-green);
+  --rg-parchment:var(--vanilla-cream);--rg-stone:#dfe8cd;--rg-ink:#203527;
+  --rg-umber:#465c3b;--rg-canvas:#f8f5ec;--rg-border:#d9e4ce;
+}
+html,body{background:var(--rg-canvas);color:var(--rg-ink)}
+.button-primary{background:var(--hunter-green);color:white;border-color:var(--hunter-green)}
+.button-primary:hover:not(:disabled){background:#254b2f;border-color:#254b2f}
+.button-secondary{background:#fffdf6;color:var(--hunter-green);border-color:#b9ceb0}
+.button-secondary:hover:not(:disabled){background:#ecf3e3;border-color:var(--sage-green)}
+.button-danger{background:#fff0ef;color:#872e34;border-color:#e0afb0}
+.button-danger:hover:not(:disabled){background:#f9e2e2}
+.text-button,.quick-more,.quick-card .quick-more{color:var(--hunter-green)!important}
+button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible,a:focus-visible{outline:3px solid var(--yellow-green);outline-offset:3px}
+.sidebar{background:#fbf9f1;border-right-color:var(--rg-border)}
+.brand strong,.page-heading h1,.detail-heading h2,.profile-overview h2{color:var(--hunter-green)}
+.brand-mark,.auth-brand .brand-mark,.auth-intro .brand-mark{background:var(--hunter-green)}
+.nav-link{color:#3c5c42}.nav-link:hover{background:#eaf1e2}
+.nav-link.active,.sidebar-nav .active{background:#e2efcf;color:#295d37}
+.nav-indicator,.quick-icon{background:var(--sage-green)}
+.quick-icon{background:#e1eed1;color:var(--hunter-green)}
+.avatar,.record-badge,.step-number,.empty-icon{background:#e1efd4;color:var(--hunter-green)}
+.eyebrow,.sidebar-label,.about-kicker{color:var(--hunter-green)}
+.panel,.stat-card,.quick-card,.insight-image-panel{background:#fffdf8;border-color:var(--rg-border)}
+.quick-card:hover{border-color:var(--sage-green);box-shadow:0 10px 28px rgba(56,102,65,.12)}
+.quick-card strong,.stat-card strong,.section-header h2,.form-section-title h2{color:var(--hunter-green)}
+.status-pill{background:#eef2d8;color:#385838}.status-dot{background:var(--sage-green)}
+.notice{background:#edf4e7;border-color:#c1d9b3;color:#365b40}.notice strong,.notice-icon{color:var(--hunter-green)}
+.notice-warning{background:#fff0e9;border-color:#e3b8a7;color:#843a3d}
+.notice-warning strong,.notice-warning .notice-icon{color:#8b3439}
+.auth-intro{background:linear-gradient(138deg,#244a30,#386641 64%,#6a994e 160%)}
+.auth-form-panel{background:#fbf9f1}
+.auth-card .eyebrow,.auth-mobile-brand,.auth-brand{color:var(--hunter-green)}
+.auth-intro .auth-brand,.auth-intro .auth-brand strong{color:#fffdf8}
+.auth-intro-copy>p,.auth-facts{color:#e4efd7}
+.intro-tag{color:#e2f6b5}
+.field input,.field select,.field textarea{background:#fffdf8;border-color:#c7d7c0;color:#1d3425}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--sage-green)}
+.insight-dss-panel{background:#edf3e4;border-color:#cbd9bf}
+.insight-panel-heading h3,.dss-item-title,.dss-number{color:var(--hunter-green)}
+.dss-item{background:#fffdf8;border-color:#d8e2cf;border-left-color:var(--sage-green)}
+.dss-item.dss-attention{border-left-color:var(--blushed-brick)}
+.dss-item.dss-review{border-left-color:var(--yellow-green)}
+.dss-item.dss-info{border-left-color:var(--sage-green)}
+.dss-item .dss-action,.preview-recovery{background:#eaf2df;color:#2a4c33}
+.dss-item .dss-action b,.preview-recovery strong{color:var(--hunter-green)}
+.about-hero{background:linear-gradient(125deg,#f2e8cf 0%,#f8f5e8 52%,#e6f1d9 100%)}
+.about-tile svg{color:var(--sage-green)}
+.grain-inspection-image{background:#172518}
+.mobile-topbar,.mobile-bottom-nav{background:#fffdf8;border-color:var(--rg-border)}
+.mobile-bottom-nav button.active{color:var(--hunter-green)}
+
+/* Prevent measurement values from being clipped at desktop and intermediate widths. */
+.detail-panel,.detail-bottom,.detail-bottom>div,.detail-grid{min-width:0;max-width:100%}
+.detail-bottom{grid-template-columns:minmax(0,0.9fr) minmax(0,1.4fr);gap:22px}
+.detail-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.detail-grid>div{min-width:0;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,max-content);align-items:start;gap:6px 10px; padding:11px 12px;border-radius:9px;background:#f3f5e9;border:1px solid #e3eadb}
+.detail-grid span,.detail-grid strong{min-width:0;white-space:normal;overflow-wrap:anywhere;line-height:1.5}
+.detail-grid strong{text-align:right;color:var(--hunter-green);font-size:12px}
+@media(max-width:1300px){.detail-grid{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:980px){.detail-bottom{grid-template-columns:minmax(0,1fr)}.detail-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:600px){.detail-grid{grid-template-columns:minmax(0,1fr)}.detail-panel{padding:16px}.detail-bottom{gap:16px}}
+
+/* Custom brand logo: place a file at frontend/public/ricegrade-logo.png and set the path in BrandLogo.tsx. */
+.brand-logo{width:38px;height:38px;object-fit:contain;flex:0 0 auto}
+.brand-logo.small{width:27px;height:27px}
+.auth-brand .brand-logo{width:43px;height:43px}

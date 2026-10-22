@@ -28,8 +28,11 @@ interface Env {
   IMAGES?: R2Bucket;
   RICEGRADE_ML_ORIGIN?: string;
   RICEGRADE_ML_TOKEN?: string;
-  RESEND_API_KEY?: string;
+  RESEND_API_KEY?: string; // Optional legacy fallback for previous deployments
   RESET_FROM_EMAIL?: string;
+  SMTP_USERNAME?: string;
+  SMTP_APP_PASSWORD?: string;
+  SMTP_FROM_EMAIL?: string;
   RICEGRADE_PUBLIC_URL?: string;
 }
 interface Context { request: Request; env: Env }
@@ -281,16 +284,111 @@ async function serviceInference(env:Env, image:R2Object, contentType:string):Pro
   return parseScreening(value);
 }
 
+/** Gmail SMTP uses implicit TLS on port 465. No plaintext credentials or app passwords are logged. */
+async function gmailSmtpReset(env:Env, recipient:string, resetUrl:string):Promise<void> {
+  const username=env.SMTP_USERNAME?.trim().toLowerCase() || '';
+  const appPassword=env.SMTP_APP_PASSWORD?.replace(/\s+/g,'') || '';
+  const from=(env.SMTP_FROM_EMAIL?.trim().toLowerCase() || username);
+  if(!username || !appPassword) fail(503,'Password reset email is not configured. Contact your administrator.');
+  // A personal Gmail SMTP account must send using its own authorized identity.
+  if(!/^[a-z0-9._%+-]+@gmail\.com$/.test(username) || from!==username || !/^[^\s<>@]+@[^\s<>@]+\.[^\s<>@]+$/.test(recipient))
+    fail(503,'Gmail SMTP configuration is invalid.');
+  // Import inside the mail path so local API smoke tests never need the Workers socket runtime.
+  const { connect } = await import('cloudflare:sockets');
+  const socket=connect({hostname:'smtp.gmail.com',port:465},{secureTransport:'on'});
+  const reader=socket.readable.getReader();
+  const writer=socket.writable.getWriter();
+  const decoder=new TextDecoder();
+  const enc=new TextEncoder();
+  let pending='';
+  async function readReply():Promise<number> {
+    let replyLines=0;
+    while(true){
+      const newline=pending.indexOf('\n');
+      if(newline<0){
+        const {done,value}=await reader.read();
+        if(done)throw new Error('SMTP server closed the connection');
+        pending+=decoder.decode(value,{stream:true});
+        if(pending.length>32_768)throw new Error('SMTP response too long');
+        continue;
+      }
+      const line=pending.slice(0,newline).replace(/\r$/,'');
+      pending=pending.slice(newline+1);
+      replyLines++;
+      if(replyLines>100 || !/^\d{3}[ -]/.test(line))throw new Error('Malformed SMTP reply');
+      if(line[3]===' ')return Number(line.slice(0,3));
+    }
+  }
+  async function expect(expected:number){
+    const actual=await readReply();
+    if(actual!==expected)throw new Error(`SMTP rejected command (status ${actual})`);
+  }
+  async function send(line:string, expected:number){
+    await writer.write(enc.encode(`${line}\r\n`));
+    await expect(expected);
+  }
+  try {
+    await expect(220);
+    await send('EHLO ricegrade.pages.dev',250);
+    // AUTH PLAIN credentials are transmitted only within the TLS socket.
+    await send(`AUTH PLAIN ${btoa(`\0${username}\0${appPassword}`)}`,235);
+    await send(`MAIL FROM:<${from}>`,250);
+    await send(`RCPT TO:<${recipient}>`,250);
+    await send('DATA',354);
+    // ASCII message; dot-stuffing and CRLF prevent SMTP DATA framing problems.
+    const message=[
+      `From: RiceGrade <${from}>`,
+      `To: <${recipient}>`,
+      'Subject: RiceGrade password reset',
+      'MIME-Version: 1.0',
+      'Content-Type: text/plain; charset=UTF-8',
+      'Content-Transfer-Encoding: 7bit',
+      '',
+      'A password reset was requested for your RiceGrade account.',
+      '',
+      'Open this link within 30 minutes:',
+      resetUrl,
+      '',
+      'If you did not request this change, ignore this message.',
+    ].join('\r\n');
+    await writer.write(enc.encode(`${message}\r\n.\r\n`));
+    await expect(250);
+    // A confirmed 250 after DATA means the SMTP server accepted the message.
+    try {await send('QUIT',221);} catch {/* delivery already accepted */}
+  } finally {
+    try {writer.releaseLock();} catch {/* closed */}
+    try {reader.releaseLock();} catch {/* closed */}
+    socket.close();
+  }
+}
+
 async function sendReset(env:Env, to:string, rawToken:string): Promise<void> {
+  const base=(env.RICEGRADE_PUBLIC_URL || 'https://ricegrade.pages.dev').replace(/\/$/,'');
+  const resetUrl=`${base}/?reset_token=${encodeURIComponent(rawToken)}`;
+  if(env.SMTP_USERNAME && env.SMTP_APP_PASSWORD){
+    try {await gmailSmtpReset(env,to,resetUrl);}
+    catch(error){
+      // No full exception or email URL logged; the URL contains a usable reset token.
+      console.error('[RiceGrade mail] Gmail SMTP delivery failed',{
+        errorType:error instanceof Error?error.name:'UnknownError',
+        smtpStatus:error instanceof Error?/SMTP rejected command \(status (\d{3})\)/.exec(error.message)?.[1]:undefined
+      });
+      if(error instanceof ApiError)throw error;
+      fail(503,'Password reset email service is unavailable. Please retry later.');
+    }
+    return;
+  }
+  // Preserve the existing Resend path for backward compatibility and API smoke tests.
   const apiKey=env.RESEND_API_KEY;
   const from=env.RESET_FROM_EMAIL;
   if (!apiKey || !from) fail(503,'Password-reset email is not configured. Contact your administrator.');
-  const base=(env.RICEGRADE_PUBLIC_URL || 'https://ricegrade.pages.dev').replace(/\/$/,'');
-  const url=`${base}/?reset_token=${encodeURIComponent(rawToken)}`;
-  const res=await fetch('https://api.resend.com/emails',{
-    method:'POST',headers:{Authorization:`Bearer ${apiKey}`,'Content-Type':'application/json'},
-    body:JSON.stringify({from,to,subject:'RiceGrade password reset',text:`A password reset was requested for your RiceGrade account.\n\nOpen within 30 minutes:\n${url}\n\nIf this was not you, ignore this message.`})
-  });
+  let res:Response;
+  try {
+    res=await fetch('https://api.resend.com/emails',{
+      method:'POST',headers:{Authorization:`Bearer ${apiKey}`,'Content-Type':'application/json'},
+      body:JSON.stringify({from,to,subject:'RiceGrade password reset',text:`A password reset was requested for your RiceGrade account.\n\nOpen within 30 minutes:\n${resetUrl}\n\nIf this was not you, ignore this message.`})
+    });
+  } catch { fail(503,'Password reset email service is unavailable. Please retry later.'); }
   if (!res.ok) fail(503,'Password reset email service is unavailable. Please retry later.');
 }
 function imageType(data:Uint8Array):string|null {
@@ -341,7 +439,8 @@ async function router(request:Request,env:Env):Promise<Response> {
     return response({access_token:access,token_type:'bearer',user:publicUser(user)});
   }
   if (path==='/api/auth/forgot-password' && method==='POST') {
-    if(!env.RESEND_API_KEY || !env.RESET_FROM_EMAIL)fail(503,'Password reset email is not configured. Contact your administrator.');
+    if(!(env.SMTP_USERNAME && env.SMTP_APP_PASSWORD) && !(env.RESEND_API_KEY && env.RESET_FROM_EMAIL))
+      fail(503,'Password reset email is not configured. Contact your administrator.');
     const p=await body(request);const email=emailAddress(field(p,'email'));
     // A separate, per-address quota prevents sending repeated reset emails.
     // The check applies to nonexistent addresses too; no account enumeration.

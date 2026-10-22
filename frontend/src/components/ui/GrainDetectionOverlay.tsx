@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import type { ScreeningResult } from '../../lib/evaluations';
 
-const COLOR: Record<string, string> = { whole_grain:'#b5b558', broken_grain:'#d1a477', chalky_grain:'#d0d0c7', discolored_grain:'#b17c4b' };
+const COLOR: Record<string, string> = { whole_grain:'#a7c957', broken_grain:'#6a994e', chalky_grain:'#f2e8cf', discolored_grain:'#bc4749' };
 const LABEL: Record<string, string> = { whole_grain:'Whole', broken_grain:'Broken', chalky_grain:'Chalky', discolored_grain:'Discolored' };
 
 /** Predictions and coordinates are drawn directly from the saved API result. */
@@ -19,7 +19,7 @@ export function GrainDetectionOverlay({ imageUrl, result }: {imageUrl: string; r
           const [x,y,w,h]=grain.bbox_xywh;
           if(![x,y,w,h].every(Number.isFinite)||w<=0||h<=0)return null;
           const className=LABEL[grain.category]||grain.category;
-          const color=COLOR[grain.category]||'#f0dec9';
+          const color=COLOR[grain.category]||'#f2e8cf';
           const outline=(grain.outline_xy?.length??0)>=3;
           const fontSize=Math.max(11,Math.min(18,width/54));
           const labelHeight=fontSize*1.65;
@@ -30,7 +30,7 @@ export function GrainDetectionOverlay({ imageUrl, result }: {imageUrl: string; r
           return <g key={`${grain.grain_index}-${index}`}><title>{`Grain ${grain.grain_index+1}: ${className}, model score ${(grain.score*100).toFixed(1)}%`}</title>
             {showBoundaries && outline && <polygon points={grain.outline_xy!.map(([px,py])=>`${px},${py}`).join(' ')} stroke={color} strokeWidth={2} fill={color} fillOpacity={.09} vectorEffect="non-scaling-stroke"/>}
             {showBoundaries && <rect x={x} y={y} width={w} height={h} stroke={color} strokeWidth={1.7} fill="none" vectorEffect="non-scaling-stroke" strokeDasharray={outline?'4 3':undefined}/>}
-            {showLabels && <g><rect x={labelX} y={Math.max(0,labelY)} width={labelWidth} height={labelHeight} rx={Math.min(5,fontSize*.25)} fill={color}/><text x={labelX+labelWidth/2} y={Math.max(0,labelY)+labelHeight*.7} fill="#27251e" textAnchor="middle" fontSize={fontSize} fontWeight="700">{label}</text></g>}
+            {showLabels && <g><rect x={labelX} y={Math.max(0,labelY)} width={labelWidth} height={labelHeight} rx={Math.min(5,fontSize*.25)} fill={color}/><text x={labelX+labelWidth/2} y={Math.max(0,labelY)+labelHeight*.7} fill={grain.category==='discolored_grain'?'#ffffff':'#203527'} textAnchor="middle" fontSize={fontSize} fontWeight="700">{label}</text></g>}
           </g>;
         })}
       </svg>}
