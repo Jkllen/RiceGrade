@@ -21,9 +21,7 @@ const blank = (): EvaluationInput => ({
   test_date: today(),
   paddy_input_weight: 0,
   total_milled_rice_weight: 0,
-  brown_rice_weight: null,
   head_rice_weight: null,
-  moisture_content: null,
   machine_notes: "",
 });
 type Props = { onCreated: () => void; onOpenAssessment: (id: number) => void };
@@ -73,13 +71,6 @@ export function AnalysisPage({ onCreated, onOpenAssessment }: Props) {
       form.head_rice_weight > form.total_milled_rice_weight
     ) {
       setError("Head rice must not exceed total milled rice weight.");
-      return;
-    }
-    if (
-      form.brown_rice_weight !== null &&
-      form.brown_rice_weight < form.total_milled_rice_weight
-    ) {
-      setError("Brown rice must not weigh less than the milled rice output.");
       return;
     }
     setBusy(true);
@@ -283,17 +274,6 @@ export function AnalysisPage({ onCreated, onOpenAssessment }: Props) {
               <small>Includes whole and broken milled rice.</small>
             </label>
             <label className="field">
-              Brown rice weight (g) <span className="optional">Optional</span>
-              <input
-                type="number"
-                step="any"
-                min="0.001"
-                value={form.brown_rice_weight ?? ""}
-                onChange={numeric("brown_rice_weight")}
-                placeholder="If separately measured"
-              />
-            </label>
-            <label className="field">
               Head rice weight (g) <span className="optional">Optional</span>
               <input
                 type="number"
@@ -302,19 +282,6 @@ export function AnalysisPage({ onCreated, onOpenAssessment }: Props) {
                 value={form.head_rice_weight ?? ""}
                 onChange={numeric("head_rice_weight")}
                 placeholder="If separately measured"
-              />
-            </label>
-            <label className="field">
-              Measured paddy moisture (%){" "}
-              <span className="optional">Optional</span>
-              <input
-                type="number"
-                step="any"
-                min="0.001"
-                max="100"
-                value={form.moisture_content ?? ""}
-                onChange={numeric("moisture_content")}
-                placeholder="If measured by a meter"
               />
             </label>
           </div>
@@ -329,17 +296,6 @@ export function AnalysisPage({ onCreated, onOpenAssessment }: Props) {
                     ? percent(
                         (form.total_milled_rice_weight /
                           form.paddy_input_weight) *
-                          100,
-                      )
-                    : "—"}
-                </strong>
-              </div>
-              <div>
-                <small>Brown recovery</small>
-                <strong>
-                  {form.paddy_input_weight > 0 && form.brown_rice_weight
-                    ? percent(
-                        (form.brown_rice_weight / form.paddy_input_weight) *
                           100,
                       )
                     : "—"}

@@ -4,12 +4,13 @@ export type EvaluationInput = {
   test_date: string;
   paddy_input_weight: number;
   total_milled_rice_weight: number;
-  brown_rice_weight: number | null;
   head_rice_weight: number | null;
-  moisture_content: number | null;
   machine_notes: string;
 };
 export type Evaluation = EvaluationInput & {
+  /** Legacy database fields retained for existing records; not collected in new assessments. */
+  brown_rice_weight: number | null;
+  moisture_content: number | null;
   id: number;
   user_id: number;
   total_milling_recovery: number;

@@ -101,15 +101,5 @@ export function buildDecisionSupport(
       });
     }
   }
-  if (evaluation.moisture_content != null) {
-    items.push({
-      title: "Recorded paddy moisture",
-      observation: `Input paddy moisture was recorded as ${evaluation.moisture_content.toFixed(2)}%.`,
-      action:
-        "Compare the reading with the applicable paddy and equipment operating procedure. A milled-rice product moisture limit is not a paddy-milling target.",
-      source: "Operator-entered moisture-meter reading",
-      priority: "info",
-    });
-  }
   return items;
 }

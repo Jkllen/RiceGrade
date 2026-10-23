@@ -41,10 +41,12 @@ result=await api('POST','/auth/sign-up',{full_name:'Another Person',role:'qa',em
 result=await api('POST','/auth/sign-in',{email:'student@example.org',password:'incorrect password'});assert.equal(result.status,401);
 result=await api('POST','/auth/sign-in',{email:'student@example.org',password:'correct-horse-staple-123'});assert.equal(result.status,200);const secondary=result.data.access_token;
 result=await api('PATCH','/auth/profile',{full_name:'Updated Operator',role:'qa'},token);assert.equal(result.data.full_name,'Updated Operator');
-result=await api('POST','/evaluations',{lot_id:'Lot-1',test_run_id:'Run-1',test_date:'2026-10-12',paddy_input_weight:1000,total_milled_rice_weight:670,brown_rice_weight:810,head_rice_weight:480,moisture_content:13,machine_notes:'Test only'},token);
-assert.equal(result.status,201);assert.equal(result.data.total_milling_recovery,67);const id=result.data.id;
+result=await api('POST','/evaluations',{lot_id:'Lot-1',test_run_id:'Run-1',test_date:'2026-10-12',paddy_input_weight:1000,total_milled_rice_weight:670,head_rice_weight:480,machine_notes:'Test only'},token);
+assert.equal(result.status,201);assert.equal(result.data.total_milling_recovery,67);assert.equal(result.data.brown_rice_recovery,null);assert.equal(result.data.moisture_content,null);const id=result.data.id;
 result=await api('GET','/evaluations',undefined,token);assert.equal(result.data.length,1);assert.equal(result.data[0].has_image,false);
 result=await api('GET',`/evaluations/${id}`,undefined,token);assert.equal(result.data.head_rice_recovery,48);
+result=await api('POST','/evaluations',{lot_id:'Lot-legacy',test_run_id:'Run-legacy',test_date:'2026-10-12',paddy_input_weight:1000,total_milled_rice_weight:650,moisture_content:13},token);assert.equal(result.status,422);
+result=await api('POST','/evaluations',{lot_id:'Lot-old',test_run_id:'Run-old',test_date:'2026-10-12',paddy_input_weight:1000,total_milled_rice_weight:650,brown_rice_weight:800},token);assert.equal(result.status,422);
 result=await api('POST','/evaluations',{lot_id:'Lot-1',test_run_id:'Run-1',test_date:'2026-10-12',paddy_input_weight:1000,total_milled_rice_weight:670,machine_notes:''},token);assert.equal(result.status,409);
 result=await api('POST','/evaluations',{lot_id:'Lot-1',test_run_id:'Run-2',test_date:'2026-10-12',paddy_input_weight:1000,total_milled_rice_weight:1010,machine_notes:''},token);assert.equal(result.status,422);
 result=await api('POST','/auth/change-password',{current_password:'correct-horse-staple-123',new_password:'brand-new-long-password-456'},token);assert.equal(result.status,200);

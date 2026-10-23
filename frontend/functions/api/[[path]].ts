@@ -145,14 +145,15 @@ function validateEval(p:Row) {
   if (!lot || !run || !/^\d{4}-\d{2}-\d{2}$/.test(date) || Number.isNaN(Date.parse(`${date}T00:00:00Z`))) fail(422,'Valid lot, test-run, and date are required');
   const paddy = parseNumber(p,'paddy_input_weight',true)!;
   const milled = parseNumber(p,'total_milled_rice_weight',true)!;
-  const brown = parseNumber(p,'brown_rice_weight',false);
+  // Preserve legacy D1 columns, but do not accept unused measurements on new runs.
+  if (p.brown_rice_weight != null && p.brown_rice_weight !== '') fail(422,'Brown-rice weight is not part of the current assessment');
+  if (p.moisture_content != null && p.moisture_content !== '') fail(422,'Paddy moisture is not part of the current assessment');
+  const brown = null;
   const head = parseNumber(p,'head_rice_weight',false);
-  const moisture = parseNumber(p,'moisture_content',false);
+  const moisture = null;
   const notes = field(p,'machine_notes',2000);
   if (milled > paddy) fail(422,'Total milled rice cannot exceed paddy input');
-  if (brown !== null && (brown < milled || brown > paddy)) fail(422,'Brown rice weight must be between milled rice and paddy input');
   if (head !== null && head > milled) fail(422,'Head rice weight cannot exceed total milled rice');
-  if (moisture !== null && moisture > 100) fail(422,'Moisture content must be at most 100%');
   return {lot,run,date,paddy,milled,brown,head,moisture,notes};
 }
 async function owned(db:D1Database,id:number, userId:number):Promise<AssessmentRow> {
@@ -526,13 +527,13 @@ async function router(request:Request,env:Env):Promise<Response> {
           brown_rice_weight,head_rice_weight,moisture_content,machine_notes,total_milling_recovery,brown_rice_recovery,
           head_rice_recovery,status,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`)
           .bind(user.id,p.lot,p.run,p.date,p.paddy,p.milled,p.brown,p.head,p.moisture,p.notes,100*p.milled/p.paddy,
-            p.brown===null?null:100*p.brown/p.paddy,p.head===null?null:100*p.head/p.paddy,'awaiting_model',now,now).run();
+            null,p.head===null?null:100*p.head/p.paddy,'awaiting_model',now,now).run();
         const id=result.meta?.last_row_id;
         if(!id)fail(500,'Assessment could not be saved');
         return response({...p,id,user_id:user.id,lot_id:p.lot,test_run_id:p.run,test_date:p.date,paddy_input_weight:p.paddy,
           total_milled_rice_weight:p.milled,brown_rice_weight:p.brown,head_rice_weight:p.head,moisture_content:p.moisture,
           machine_notes:p.notes,total_milling_recovery:100*p.milled/p.paddy,
-          brown_rice_recovery:p.brown===null?null:100*p.brown/p.paddy,
+          brown_rice_recovery:null,
           head_rice_recovery:p.head===null?null:100*p.head/p.paddy,
           status:'awaiting_model',created_at:now,updated_at:now,has_image:false},201);
       }catch(e){if(String(e).includes('UNIQUE'))fail(409,'This test-run ID already exists in your account');throw e;}

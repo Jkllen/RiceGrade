@@ -261,24 +261,12 @@ export function HistoryPage({
                   <strong>{selected.total_milled_rice_weight} g</strong>
                 </div>
                 <div>
-                  <span>Brown rice</span>
-                  <strong>
-                    {selected.brown_rice_weight == null
-                      ? "Not measured"
-                      : `${selected.brown_rice_weight} g`}
-                  </strong>
-                </div>
-                <div>
                   <span>Head rice</span>
                   <strong>
                     {selected.head_rice_weight == null
                       ? "Not measured"
                       : `${selected.head_rice_weight} g`}
                   </strong>
-                </div>
-                <div>
-                  <span>Paddy moisture</span>
-                  <strong>{percent(selected.moisture_content)}</strong>
                 </div>
                 <div>
                   <span>Created on</span>
