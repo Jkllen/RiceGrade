@@ -27,3 +27,4 @@ artifacts/**
 # Cloudflare local state, generated API smoke-test output
 frontend/.wrangler/
 frontend/cloudflare-tests/.api-built/
+frontend/tests/.dss-built/

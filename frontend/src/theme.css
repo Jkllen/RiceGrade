@@ -296,3 +296,48 @@ textarea:focus-visible, a:focus-visible, .upload-control:focus-within {
 @media (prefers-reduced-motion: reduce) {
   .button, .quick-card { transition: none; }
 }
+
+/* R1–R11 decision-support additions (AssessmentInsights). */
+.dss-outcome {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 12px;
+  margin-bottom: 14px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: var(--brand-soft);
+}
+.dss-outcome span {
+  font-size: 11px;
+  font-weight: 750;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.dss-outcome strong { font-size: 19px; letter-spacing: -0.02em; color: var(--brand-ink); }
+.dss-outcome small { flex-basis: 100%; font-size: 11px; color: var(--text-muted); }
+.dss-outcome-manual_verification,
+.dss-outcome-qa_review { background: rgba(188, 71, 73, 0.08); border-color: rgba(188, 71, 73, 0.3); }
+.dss-outcome-manual_verification strong,
+.dss-outcome-qa_review strong { color: var(--danger); }
+.dss-outcome-adjust_retest { background: rgba(210, 154, 46, 0.1); border-color: rgba(210, 154, 46, 0.35); }
+.dss-outcome-adjust_retest strong { color: var(--warning); }
+.dss-limits { margin: 0 0 14px; font-size: 12px; line-height: 1.6; color: var(--text-muted); }
+.dss-confirm {
+  display: flex;
+  gap: 9px;
+  align-items: flex-start;
+  margin-bottom: 14px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--text-body);
+}
+.dss-confirm input { margin-top: 3px; accent-color: var(--brand); }
+.dss-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.dss-tags .insight-tag { font-size: 10px; padding: 4px 8px; }
+.dss-tags .dss-severe { background: rgba(188, 71, 73, 0.12); color: var(--danger); }
+.dss-skipped { margin-top: 14px; font-size: 12px; color: var(--text-muted); }
+.dss-skipped strong { color: var(--text); }
+.dss-skipped ul { margin: 6px 0 0; padding-left: 18px; }

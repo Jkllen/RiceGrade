@@ -9,6 +9,7 @@ import {
 } from "../../../components/ui/Elements";
 import { AssessmentInsights } from "../../../components/ui/AssessmentInsights";
 import { apiRequest, getProtectedImage } from "../../../lib/authApi";
+import { isRetestOf } from "../../../lib/dss";
 import {
   type Evaluation,
   type ScreeningRecord,
@@ -27,6 +28,7 @@ export function ReportsPage({ onHistory, onNew, refresh }: Props) {
   const [error, setError] = useState("");
   const [previewId, setPreviewId] = useState<number | null>(null);
   const [screening, setScreening] = useState<ScreeningRecord | null>(null);
+  const [screeningLoadFailed, setScreeningLoadFailed] = useState(false);
   const [imageUrl, setImageUrl] = useState("");
   useEffect(() => {
     let live = true;
@@ -52,12 +54,15 @@ export function ReportsPage({ onHistory, onNew, refresh }: Props) {
   useEffect(() => {
     let live = true;
     setScreening(null);
+    setScreeningLoadFailed(false);
     if (previewId !== null) {
       apiRequest<ScreeningRecord>(`/evaluations/${previewId}/screening`)
         .then((r) => {
           if (live) setScreening(r);
         })
-        .catch(() => {});
+        .catch(() => {
+          if (live) setScreeningLoadFailed(true);
+        });
     }
     return () => {
       live = false;
@@ -103,6 +108,8 @@ export function ReportsPage({ onHistory, onNew, refresh }: Props) {
               screening?.status === "research_preview" ? screening.result : null
             }
             imageUrl={imageUrl || undefined}
+            isRetest={isRetestOf(preview, items)}
+            screeningLoading={screening === null && !screeningLoadFailed}
           />
           <div className="button-row">
             <button

@@ -10,6 +10,7 @@ import {
 import { AssessmentInsights } from "../../../components/ui/AssessmentInsights";
 import { SamplePhotoInput } from "../../../components/ui/SamplePhotoInput";
 import { apiRequest, getProtectedImage } from "../../../lib/authApi";
+import { isRetestOf } from "../../../lib/dss";
 import {
   type Evaluation,
   type ScreeningRecord,
@@ -42,6 +43,7 @@ export function HistoryPage({
   const [deleteBusy, setDeleteBusy] = useState(false);
   const [uploadBusy, setUploadBusy] = useState(false);
   const [screening, setScreening] = useState<ScreeningRecord | null>(null);
+  const [screeningLoadFailed, setScreeningLoadFailed] = useState(false);
   const [screeningBusy, setScreeningBusy] = useState(false);
   const selected = items.find((item) => item.id === selectedId);
   useEffect(() => {
@@ -86,12 +88,15 @@ export function HistoryPage({
   useEffect(() => {
     let live = true;
     setScreening(null);
+    setScreeningLoadFailed(false);
     if (selectedId !== null) {
       apiRequest<ScreeningRecord>(`/evaluations/${selectedId}/screening`)
         .then((r) => {
           if (live) setScreening(r);
         })
-        .catch(() => {});
+        .catch(() => {
+          if (live) setScreeningLoadFailed(true);
+        });
     }
     return () => {
       live = false;
@@ -234,6 +239,8 @@ export function HistoryPage({
             evaluation={selected}
             result={hasResult ? screening!.result : null}
             imageUrl={imageUrl || undefined}
+            isRetest={isRetestOf(selected, items)}
+            screeningLoading={screening === null && !screeningLoadFailed}
           />
           <div className="detail-bottom">
             <div>

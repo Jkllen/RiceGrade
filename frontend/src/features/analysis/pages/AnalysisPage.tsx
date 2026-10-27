@@ -3,6 +3,7 @@ import { Header, Icon, Notice } from "../../../components/ui/Elements";
 import { AssessmentInsights } from "../../../components/ui/AssessmentInsights";
 import { SamplePhotoInput } from "../../../components/ui/SamplePhotoInput";
 import { apiRequest } from "../../../lib/authApi";
+import { isRetestOf } from "../../../lib/dss";
 import {
   type Evaluation,
   type EvaluationInput,
@@ -34,6 +35,20 @@ export function AnalysisPage({ onCreated, onOpenAssessment }: Props) {
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [stage, setStage] = useState("");
+  const [isRetest, setIsRetest] = useState(false);
+  useEffect(() => {
+    let live = true;
+    setIsRetest(false);
+    if (saved)
+      apiRequest<Evaluation[]>("/evaluations")
+        .then((rows) => {
+          if (live) setIsRetest(isRetestOf(saved, rows));
+        })
+        .catch(() => {});
+    return () => {
+      live = false;
+    };
+  }, [saved?.id]);
   useEffect(() => {
     if (!image) {
       setPreview("");
@@ -162,6 +177,7 @@ export function AnalysisPage({ onCreated, onOpenAssessment }: Props) {
               evaluation={saved}
               result={screening.result}
               imageUrl={preview}
+              isRetest={isRetest}
             />
           )}
         {!busy &&
@@ -170,6 +186,7 @@ export function AnalysisPage({ onCreated, onOpenAssessment }: Props) {
               evaluation={saved}
               result={null}
               imageUrl={preview}
+              isRetest={isRetest}
             />
           )}
         <div className="button-row analysis-result-actions">

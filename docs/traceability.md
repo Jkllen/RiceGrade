@@ -19,7 +19,7 @@ This milestone is UI/account/recovery first. Completed software features are dis
 | EfficientNet-B0 feature extraction | `backend/app/ml/` (future) | Verify final training checkpoint/config | Pending model integration |
 | Feature fusion / XGBoost final classification | `backend/app/ml/` (future) | Independent held-out comparisons and macro-F1 | Pending |
 | Visual counts and proportions | assessment inference service (future) | Ground-truth sample comparisons | Pending |
-| DSS reference rules and recommendations | `backend/app/domain/` (future) | Validated boundary tests and expert review | Pending |
+| DSS reference rules and recommendations (R1–R11) | `frontend/src/lib/dss.ts`, `frontend/src/components/ui/AssessmentInsights.tsx`, `docs/decision-support/knowledge-base.md` | `npm run test:dss` boundary tests; expert review pending | Implemented (client-side, deterministic) |
 | Final evaluation report with DSS | report service (future) | Data and threshold traceability tests | Pending |
 
 **Scientific boundary:** never equate image-derived grain-count percentages with PNS/BAFS mass-based quality thresholds; never derive actual recovery from those image counts.
